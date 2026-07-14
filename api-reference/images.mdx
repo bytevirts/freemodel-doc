@@ -7,30 +7,96 @@ description: "Generate images with the OpenAI-compatible API."
   Base URL: `https://api.freemodel.app/v1`
 </Info>
 
-Generate an image from a text prompt.
+Generate one image from a text prompt. Image generation is synchronous and usually completes in 20 to 60 seconds. Set your client timeout to at least 120 seconds.
 
 ## Create an image
 
 `POST /images/generations`
 
-```bash
+The response contains the generated image as base64 in `data[0].b64_json`. Decode it and write the bytes to an image file.
+
+<CodeGroup>
+```bash Curl
 curl https://api.freemodel.app/v1/images/generations \
-  -H "Authorization: Bearer sk-xxxx" \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-image",
+    "model": "gpt-image-2",
     "prompt": "A clean indigo hexagon logo on a white background",
-    "size": "1024x1024",
-    "n": 1
-  }'
+    "size": "1024x1024"
+  }' \
+  | jq -r '.data[0].b64_json' \
+  | base64 --decode > image.png
 ```
+
+```python Python
+import base64
+import json
+import os
+from urllib.request import Request, urlopen
+
+request = Request(
+    "https://api.freemodel.app/v1/images/generations",
+    data=json.dumps({
+        "model": "gpt-image-2",
+        "prompt": "A clean indigo hexagon logo on a white background",
+        "size": "1024x1024",
+    }).encode(),
+    headers={
+        "Authorization": f"Bearer {os.environ['FREEMODEL_API_KEY']}",
+        "Content-Type": "application/json",
+    },
+    method="POST",
+)
+
+with urlopen(request, timeout=120) as response:
+    payload = json.load(response)
+
+with open("image.png", "wb") as image_file:
+    image_file.write(base64.b64decode(payload["data"][0]["b64_json"]))
+```
+
+```javascript Node.js
+const fs = require("node:fs/promises");
+
+async function main() {
+  const response = await fetch(
+    "https://api.freemodel.app/v1/images/generations",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.FREEMODEL_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-image-2",
+        prompt: "A clean indigo hexagon logo on a white background",
+        size: "1024x1024",
+      }),
+      signal: AbortSignal.timeout(120_000),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+
+  const payload = await response.json();
+  await fs.writeFile("image.png", Buffer.from(payload.data[0].b64_json, "base64"));
+}
+
+main();
+```
+</CodeGroup>
+
+On macOS, replace `base64 --decode` in the curl example with `base64 -D`.
 
 ```json Response
 {
-  "created": 1730000000,
+  "created": 1784045139,
   "data": [
     {
-      "url": "https://example.invalid/generated-image.png"
+      "b64_json": "iVBORw0KGgoAAAANSUhEUg..."
     }
   ]
 }
@@ -40,12 +106,11 @@ curl https://api.freemodel.app/v1/images/generations \
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `model` | string | Yes | An image-capable model ID. Check [`GET /v1/models`](/api-reference/list-models). |
-| `prompt` | string | Yes | A description of the image to generate. |
-| `size` | string | No | Requested image dimensions when supported by the model. |
-| `n` | integer | No | Number of images to generate when supported by the model. |
-| `response_format` | string | No | Requested response representation when supported by the model. |
+| `model` | string | Yes | Use `gpt-image-2`. |
+| `prompt` | string | Yes | Describe the image you want to generate. |
+| `size` | string | No | `1024x1024` creates a 1:1 image. `1536x1024` creates a 3:2 image. `1024x1536` creates a 2:3 image. Omit this field, or use another value, to use the automatic aspect ratio. |
+| `n` | integer | No | Omit this field or set it to `1`. Multiple images are not supported. |
 
 <Note>
-  Image capabilities and supported options depend on the selected model. Check the [models page](https://freemodel.app/models) for current availability and pricing.
+  Output quality is fixed at 1K in v1. Each image costs $0.01. See the [models page](https://freemodel.app/models) for current rates.
 </Note>

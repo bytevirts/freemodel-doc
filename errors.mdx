@@ -21,9 +21,27 @@ Use the HTTP status code together with `error.type` and `error.code` to decide h
 | --- | --- | --- | --- |
 | 401 | `invalid_token` | The API key is missing, invalid, or revoked. | Check the `Authorization: Bearer sk-...` header. Create a new key if needed. |
 | 400 or 404 | `model_not_found` | The requested model is not available to your key. | Call [`GET /v1/models`](/api-reference/list-models) and use a returned ID. |
+| 400 | `invalid_request` | A video request has a `seconds` value other than `"10"`. | Set `seconds` to the string `"10"`. |
 | 402 | `insufficient_user_quota` | Your prepaid balance is empty or insufficient. | Add balance in the Console under **Billing**. |
 | 429 | Rate limit error | Too many requests were sent in a short period. | Back off and retry with exponential delay. |
 | 500-599 | Server error | FreeModel or an upstream provider could not complete the request. | Retry transient failures with backoff. |
+
+## Video request error
+
+A video request with a `seconds` value other than the string `"10"` returns a `400` `invalid_request` error. Videos are fixed at 10 seconds.
+
+```bash
+curl https://api.freemodel.app/v1/videos \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-omni-t2v",
+    "prompt": "A paper airplane glides through a sunlit library",
+    "seconds": "5"
+  }'
+```
+
+The response has `error.type` and `error.code` set to `invalid_request`. Set `seconds` to `"10"` and submit the request again.
 
 ## Retry safely
 
