@@ -1,0 +1,19 @@
+---
+title: "Rate limits"
+description: "Build reliable clients when request limits apply."
+---
+
+FreeModel may apply per-key fairness limits to protect service availability. Limits can vary by model and current capacity. FreeModel does not publish fixed limits at this time.
+
+When a request exceeds a limit, the API returns HTTP `429` with the standard error envelope.
+
+## Handle 429 responses
+
+- Queue work instead of sending large bursts of parallel requests.
+- Retry with exponential backoff and jitter.
+- Set a maximum retry count and surface a useful error when it is reached.
+- Stream or batch work only when it suits your workload and the selected endpoint.
+
+Do not retry immediately in a tight loop. That can extend the throttling period.
+
+See [Errors](/errors) for the error response format.

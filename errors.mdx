@@ -1,0 +1,34 @@
+---
+title: "Errors"
+description: "Handle FreeModel API errors."
+---
+
+FreeModel returns errors in the OpenAI-compatible envelope.
+
+```json
+{
+  "error": {
+    "message": "Your balance is insufficient.",
+    "type": "insufficient_user_quota",
+    "code": "insufficient_user_quota"
+  }
+}
+```
+
+Use the HTTP status code together with `error.type` and `error.code` to decide how to recover.
+
+| Status | Code or type | Meaning | Fix |
+| --- | --- | --- | --- |
+| 401 | `invalid_token` | The API key is missing, invalid, or revoked. | Check the `Authorization: Bearer sk-...` header. Create a new key if needed. |
+| 400 or 404 | `model_not_found` | The requested model is not available to your key. | Call [`GET /v1/models`](/api-reference/list-models) and use a returned ID. |
+| 402 | `insufficient_user_quota` | Your prepaid balance is empty or insufficient. | Add balance in the Console under **Billing**. |
+| 429 | Rate limit error | Too many requests were sent in a short period. | Back off and retry with exponential delay. |
+| 500-599 | Server error | FreeModel or an upstream provider could not complete the request. | Retry transient failures with backoff. |
+
+## Retry safely
+
+Retry only errors that can be temporary, such as `429` and `5xx` responses. Do not retry an invalid key, an unavailable model, or an empty balance without changing the request or account state.
+
+<Tip>
+  Log the HTTP status, request ID when present, and the complete `error` object. Do not log API keys or sensitive prompt content.
+</Tip>

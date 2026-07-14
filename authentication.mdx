@@ -1,0 +1,30 @@
+---
+title: "Authentication"
+description: "Create and use a FreeModel API key."
+---
+
+FreeModel authenticates API requests with a secret API key.
+
+## Create an API key
+
+1. Sign in to the [FreeModel Console](https://freemodel.app/settings).
+2. Open **API Keys**.
+3. Create a new key and copy it when shown.
+
+Use the key in the `Authorization` header.
+
+```bash
+curl https://api.freemodel.app/v1/models \
+  -H "Authorization: Bearer sk-xxxx"
+```
+
+## Protect your key
+
+- Keep API keys on your server. Do not put them in browser code, mobile apps, public repositories, or client-side environment variables.
+- Load keys from a secret manager or server-side environment variable.
+- Use a different key for each environment when possible.
+- If you expose a key, delete it in the Console and create a replacement immediately. Do not continue using the exposed key.
+
+<Warning>
+  An API key can consume your prepaid balance. Treat it like a password.
+</Warning>

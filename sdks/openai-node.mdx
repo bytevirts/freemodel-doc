@@ -1,0 +1,61 @@
+---
+title: "OpenAI Node SDK"
+description: "Use FreeModel with the official OpenAI JavaScript SDK."
+---
+
+Install the official SDK.
+
+```bash
+npm install openai
+```
+
+Set `baseURL` to the FreeModel OpenAI-compatible endpoint.
+
+```javascript
+const OpenAI = require("openai");
+
+async function main() {
+  const client = new OpenAI({
+    apiKey: "sk-xxxx",
+    baseURL: "https://api.freemodel.app/v1",
+  });
+
+  const response = await client.chat.completions.create({
+    model: "gpt-5.4-mini",
+    messages: [
+      { role: "user", content: "Give me one API reliability tip." },
+    ],
+  });
+
+  console.log(response.choices[0].message.content);
+}
+
+main();
+```
+
+To stream, pass `stream: true` and use `for await` to read each chunk.
+
+```javascript
+const OpenAI = require("openai");
+
+async function main() {
+  const client = new OpenAI({
+    apiKey: "sk-xxxx",
+    baseURL: "https://api.freemodel.app/v1",
+  });
+
+  const stream = await client.chat.completions.create({
+    model: "gpt-5.4-mini",
+    messages: [{ role: "user", content: "Say hello in three words." }],
+    stream: true,
+  });
+
+  for await (const chunk of stream) {
+    process.stdout.write(chunk.choices[0]?.delta?.content || "");
+  }
+}
+
+main();
+```
+
+See [Chat completions](/api-reference/chat-completions) for request options.

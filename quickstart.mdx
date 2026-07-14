@@ -1,47 +1,113 @@
 ---
 title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+description: "Send your first FreeModel chat completion."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
+This guide sends a chat completion through the OpenAI-compatible API.
 
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
+## Before you begin
 
-## Prerequisites
+Create an API key in the FreeModel Console under **API Keys**. Add prepaid balance under **Billing** before sending requests.
 
-Before you begin, you must have:
+## Send a chat completion
 
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
+Set your key in the current shell, then run the request.
 
-## Get started
+```bash
+export FREEMODEL_API_KEY="sk-xxxx"
 
-<Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
+curl https://api.freemodel.app/v1/chat/completions \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-5.4-mini",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write a one-sentence welcome to FreeModel."
+      }
+    ]
+  }'
+```
 
-    ```bash
-    npm install your-package
-    ```
-  </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
+The response contains the generated text at `choices[0].message.content`.
 
-    ```bash
-    your-cli init
-    ```
-  </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+## Use an OpenAI SDK
 
-    ```bash
-    your-cli start
-    ```
-  </Step>
-</Steps>
+FreeModel works with the official OpenAI SDKs. Set `base_url` to the FreeModel API base URL.
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+<CodeGroup>
+```python Python
+from openai import OpenAI
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+client = OpenAI(
+    api_key="sk-xxxx",
+    base_url="https://api.freemodel.app/v1",
+)
+
+completion = client.chat.completions.create(
+    model="gpt-5.4-mini",
+    messages=[
+        {"role": "user", "content": "Write a one-sentence welcome to FreeModel."}
+    ],
+)
+
+print(completion.choices[0].message.content)
+```
+
+```javascript Node.js
+const OpenAI = require("openai");
+
+async function main() {
+  const client = new OpenAI({
+    apiKey: "sk-xxxx",
+    baseURL: "https://api.freemodel.app/v1",
+  });
+
+  const completion = await client.chat.completions.create({
+    model: "gpt-5.4-mini",
+    messages: [
+      { role: "user", content: "Write a one-sentence welcome to FreeModel." },
+    ],
+  });
+
+  console.log(completion.choices[0].message.content);
+}
+
+main();
+```
+</CodeGroup>
+
+Install the matching SDK before running the example:
+
+<CodeGroup>
+```bash Python
+pip install openai
+```
+
+```bash Node.js
+npm install openai
+```
+</CodeGroup>
+
+## Stream the response
+
+Set `stream` to `true` to receive server-sent events as text is generated.
+
+```bash
+curl -N https://api.freemodel.app/v1/chat/completions \
+  -H "Authorization: Bearer sk-xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-5.4-mini",
+    "stream": true,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Count from one to three."
+      }
+    ]
+  }'
+```
+
+See [Chat completions](/api-reference/chat-completions#stream-a-response) for the streaming event format.

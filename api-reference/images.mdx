@@ -1,0 +1,51 @@
+---
+title: "Images"
+description: "Generate images with the OpenAI-compatible API."
+---
+
+<Info>
+  Base URL: `https://api.freemodel.app/v1`
+</Info>
+
+Generate an image from a text prompt.
+
+## Create an image
+
+`POST /images/generations`
+
+```bash
+curl https://api.freemodel.app/v1/images/generations \
+  -H "Authorization: Bearer sk-xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-image",
+    "prompt": "A clean indigo hexagon logo on a white background",
+    "size": "1024x1024",
+    "n": 1
+  }'
+```
+
+```json Response
+{
+  "created": 1730000000,
+  "data": [
+    {
+      "url": "https://example.invalid/generated-image.png"
+    }
+  ]
+}
+```
+
+## Request body
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `model` | string | Yes | An image-capable model ID. Check [`GET /v1/models`](/api-reference/list-models). |
+| `prompt` | string | Yes | A description of the image to generate. |
+| `size` | string | No | Requested image dimensions when supported by the model. |
+| `n` | integer | No | Number of images to generate when supported by the model. |
+| `response_format` | string | No | Requested response representation when supported by the model. |
+
+<Note>
+  Image capabilities and supported options depend on the selected model. Check the [models page](https://freemodel.app/models) for current availability and pricing.
+</Note>

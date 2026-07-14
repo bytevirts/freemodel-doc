@@ -1,0 +1,72 @@
+---
+title: "Gemini generateContent"
+description: "Use the Gemini generateContent-compatible endpoint."
+---
+
+<Warning>
+  This is a compatibility endpoint for existing Gemini-style integrations. For new integrations, use the [OpenAI-compatible API](/api-reference/chat-completions).
+</Warning>
+
+`POST https://api.freemodel.app/v1beta/models/{model}:generateContent`
+
+Choose a Gemini-compatible model ID returned by [`GET /v1/models`](/api-reference/list-models). Substitute it for `<gemini-model-id>` in the path.
+
+## Generate content
+
+Authenticate with a Bearer key. The gateway also accepts a FreeModel key in the `key` query parameter for Gemini-style clients.
+
+```bash
+curl "https://api.freemodel.app/v1beta/models/<gemini-model-id>:generateContent" \
+  -H "Authorization: Bearer sk-xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contents": [
+      {
+        "role": "user",
+        "parts": [
+          {"text": "Explain an API gateway in one sentence."}
+        ]
+      }
+    ],
+    "generationConfig": {
+      "temperature": 0.2,
+      "maxOutputTokens": 100
+    }
+  }'
+```
+
+```json Response
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "An API gateway provides a single entry point that routes requests to backend APIs."
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 9,
+    "candidatesTokenCount": 15,
+    "totalTokenCount": 24
+  }
+}
+```
+
+## Request body
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| Path `model` | string | Yes | A Gemini-compatible model ID available to your key. |
+| `contents` | array | Yes | Gemini-style content objects containing `parts`. |
+| `generationConfig.temperature` | number | No | Sampling variation. |
+| `generationConfig.maxOutputTokens` | integer | No | Maximum tokens to generate when supported. |
+
+<Note>
+  Model availability can change. The [models page](https://freemodel.app/models) lists the current catalog and pricing.
+</Note>

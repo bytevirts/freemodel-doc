@@ -1,0 +1,37 @@
+---
+title: "List models"
+description: "Discover models available to your API key."
+---
+
+<Info>
+  Base URL: `https://api.freemodel.app/v1`
+</Info>
+
+List the models available to your API key before selecting a model in a request.
+
+## List available models
+
+`GET /models`
+
+```bash
+curl https://api.freemodel.app/v1/models \
+  -H "Authorization: Bearer sk-xxxx"
+```
+
+```json Response
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "gpt-5.4-mini",
+      "object": "model",
+      "created": 1730000000,
+      "owned_by": "freemodel"
+    }
+  ]
+}
+```
+
+Use each returned `data[].id` as the `model` value for compatible endpoints. The response is scoped to your key, so it is more reliable than a hardcoded model list.
+
+For current public pricing, visit the [FreeModel models page](https://freemodel.app/models).

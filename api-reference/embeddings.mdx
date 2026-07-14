@@ -1,0 +1,56 @@
+---
+title: "Embeddings"
+description: "Create vector embeddings with the OpenAI-compatible API."
+---
+
+<Info>
+  Base URL: `https://api.freemodel.app/v1`
+</Info>
+
+Create numerical vector representations for text.
+
+## Create embeddings
+
+`POST /embeddings`
+
+Choose an embedding-capable model from [`GET /v1/models`](/api-reference/list-models). The example uses `<embedding-model-id>` to avoid assuming model availability for every account.
+
+```bash
+curl https://api.freemodel.app/v1/embeddings \
+  -H "Authorization: Bearer sk-xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "<embedding-model-id>",
+    "input": "FreeModel provides a unified AI API."
+  }'
+```
+
+```json Response
+{
+  "object": "list",
+  "data": [
+    {
+      "object": "embedding",
+      "index": 0,
+      "embedding": [0.0123, -0.0456, 0.0789]
+    }
+  ],
+  "model": "<embedding-model-id>",
+  "usage": {
+    "prompt_tokens": 8,
+    "total_tokens": 8
+  }
+}
+```
+
+## Request body
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `model` | string | Yes | An embedding model ID returned for your API key. |
+| `input` | string or array | Yes | One text input or an array of text inputs. |
+| `encoding_format` | string | No | Output encoding when supported by the selected model. |
+
+<Note>
+  Do not mix vectors from different embedding models in the same similarity index.
+</Note>
