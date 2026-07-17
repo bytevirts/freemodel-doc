@@ -1,0 +1,121 @@
+---
+title: "Get task status"
+description: "One endpoint to check any asynchronous generation task by its ID."
+---
+
+<Info>
+  `GET https://api.freemodel.app/v1/tasks/{id}`
+</Info>
+
+Query any asynchronous task (video generation today) with the task ID returned
+when you submitted it. Your API key only sees its own tasks — other IDs return
+`404`.
+
+<CodeGroup>
+```bash Curl
+curl https://api.freemodel.app/v1/tasks/task_01HXYZ \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY"
+```
+
+```python Python
+import json
+import os
+from urllib.request import Request, urlopen
+
+request = Request(
+    "https://api.freemodel.app/v1/tasks/task_01HXYZ",
+    headers={"Authorization": f"Bearer {os.environ['FREEMODEL_API_KEY']}"},
+)
+
+with urlopen(request) as response:
+    task = json.load(response)
+
+print(task["status"], task.get("result"))
+```
+
+```javascript Node.js
+const response = await fetch(
+  "https://api.freemodel.app/v1/tasks/task_01HXYZ",
+  { headers: { Authorization: `Bearer ${process.env.FREEMODEL_API_KEY}` } },
+);
+const task = await response.json();
+console.log(task.status, task.result);
+```
+</CodeGroup>
+
+<CodeGroup>
+```json Completed
+{
+  "id": "task_01HXYZ",
+  "object": "task",
+  "status": "completed",
+  "model": "gemini-omni-t2v",
+  "progress": 100,
+  "created": 1784324432,
+  "completed": 1784324660,
+  "cost": 0.25,
+  "result": {
+    "videos": [
+      {
+        "url": ["https://storage.example.com/videos/output.mp4"],
+        "expires_at": 1785534260
+      }
+    ]
+  },
+  "error": null
+}
+```
+
+```json Failed
+{
+  "id": "task_01HXYZ",
+  "object": "task",
+  "status": "failed",
+  "model": "gemini-omni-t2v",
+  "progress": 100,
+  "created": 1784324432,
+  "completed": 1784324655,
+  "cost": 0,
+  "result": null,
+  "error": { "message": "Upstream generation failed" }
+}
+```
+
+```json In progress
+{
+  "id": "task_01HXYZ",
+  "object": "task",
+  "status": "in_progress",
+  "model": "gemini-omni-t2v",
+  "progress": 30,
+  "created": 1784324432,
+  "completed": null,
+  "cost": 0.25,
+  "result": null,
+  "error": null
+}
+```
+</CodeGroup>
+
+## Response fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | The task ID you submitted. |
+| `status` | string | `queued`, `in_progress`, `completed`, or `failed`. |
+| `model` | string | The model that ran the task. |
+| `progress` | number | 0–100. |
+| `created` / `completed` | number | Unix timestamps (seconds). `completed` is `null` while running. |
+| `cost` | number | Amount billed in USD. Failed tasks are automatically refunded. |
+| `result.videos[].url` | string[] | Direct download URLs. Some models return more than one file. |
+| `result.videos[].expires_at` | number | Unix timestamp when the URLs stop working. Download and store the files before then. |
+| `error.message` | string | Failure reason when `status` is `failed`. |
+
+<Warning>
+  Result URLs expire (media is retained for 14 days — see `expires_at`).
+  Download the files to your own storage promptly.
+</Warning>
+
+Poll every 10 to 20 seconds, or skip polling entirely with a
+[webhook](/api-reference/webhooks) — the webhook payload is exactly this
+response object.

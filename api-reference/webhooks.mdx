@@ -1,148 +1,143 @@
 ---
-title: "Webhooks"
-description: "Receive signed push notifications when a video generation finishes, instead of polling."
+title: "Task webhooks"
+description: "Add a webhook URL when submitting a task and receive the result by POST — no polling."
 ---
 
-Webhooks notify your server the moment an asynchronous generation reaches a
-final state. Instead of polling `GET /videos/{id}` every 10 to 20 seconds, you
-receive one HTTP POST per generation with the outcome and the result URLs.
+Add a `webhook` field when you submit an asynchronous task. When the task
+finishes (succeeds or fails), FreeModel POSTs the result to your URL. No
+registration, no extra credentials — just your API key.
 
-<Info>
-  Webhook endpoints are currently registered per account by the FreeModel team.
-  Contact [support@freemodel.app](mailto:support@freemodel.app) with your
-  endpoint URL to enable webhooks and receive your signing secret.
-</Info>
+## Quick start
 
-## Event types
+```bash
+curl https://api.freemodel.app/v1/videos \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-omni-t2v",
+    "prompt": "A paper airplane glides through a sunlit library",
+    "seconds": "10",
+    "webhook": "https://your-server.com/freemodel/callback"
+  }'
+```
 
-| Type | Sent when |
-| --- | --- |
-| `task.succeeded` | A generation completed and its result URLs are available. |
-| `task.failed` | A generation failed. Failed generations are automatically refunded. |
+We POST to exactly the URL you provide. Webhooks fire only on **final states**
+(`completed` / `failed`) — never while the task is still running.
 
-Only asynchronous generations produce events. Video requests (`POST /videos`)
-are asynchronous; image requests return their result in the response, so they
-do not produce events.
+## What you receive
 
-## Event payload
-
-Your endpoint receives a JSON body:
+The POST body is **identical to the [Get task status](/api-reference/task-status)
+response** — one parser handles both:
 
 ```json
 {
-  "id": "evt_584638c942d672cd2ed3dfc22d4c0a60",
-  "object": "event",
-  "type": "task.succeeded",
-  "created_at": 1784324664,
-  "data": {
-    "id": "gen_19efcaa443214330bd832996b3e53897",
-    "object": "task",
-    "gateway_task_id": "task_QzZ7QQekXySDrCRociwlGTJs1cNY6Ygl",
-    "kind": "video",
-    "model": "gemini-omni-t2v",
-    "status": "succeeded",
-    "result_urls": ["https://storage.example.com/videos/output.mp4"],
-    "error": null,
-    "prompt": "A red fox trotting through fresh snow at dawn",
-    "created_at": 1784324432,
-    "completed_at": 1784324660
-  }
+  "id": "task_01HXYZ",
+  "object": "task",
+  "status": "completed",
+  "model": "gemini-omni-t2v",
+  "progress": 100,
+  "created": 1784324432,
+  "completed": 1784324660,
+  "cost": 0.25,
+  "result": {
+    "videos": [
+      {
+        "url": ["https://storage.example.com/videos/output.mp4"],
+        "expires_at": 1785534260
+      }
+    ]
+  },
+  "error": null
 }
 ```
 
-| Field | Description |
+Failed tasks arrive with `"status": "failed"`, `"result": null`, and
+`error.message` — they are automatically refunded.
+
+## Retries and deduplication
+
+- Respond with any `2xx` within 10 seconds. Acknowledge first, process
+  asynchronously.
+- No `2xx` (timeout or `5xx`): we retry after **10s, 30s, 60s**, then give up.
+- A `4xx` response means your address rejected the request — we stop
+  immediately, no retries.
+- In rare cases you may receive the same notification twice. Deduplicate on
+  `id` + `status`.
+
+## Webhook URL requirements
+
+| Requirement | Detail |
 | --- | --- |
-| `id` | Event ID. Stable per generation and outcome — deduplicate on it. |
-| `type` | `task.succeeded` or `task.failed`. |
-| `data.gateway_task_id` | The `id` returned when you submitted the request (`task_…`). Use this to match the event to your generation. |
-| `data.id` | FreeModel's internal generation ID (`gen_…`). |
-| `data.status` | `succeeded` or `failed`. |
-| `data.result_urls` | Direct download URLs for the generated media. Empty when the generation failed. |
-| `data.error` | Failure reason, or `null`. |
-| `data.created_at` / `data.completed_at` | Unix timestamps (seconds) for submission and completion. |
+| Publicly reachable | Internal/private addresses (`127.0.0.1`, `10.x`, `192.168.x`, …) are rejected at submit time. |
+| Protocol | `http` or `https` (use `https` in production). |
+| Not our domain | URLs pointing at `freemodel.app` are rejected. |
 
-<Warning>
-  Download `result_urls` promptly and store the media yourself. Generated media
-  is retained for 14 days; the URLs stop working after that.
-</Warning>
+An invalid `webhook` value fails the submission with an `invalid_request`
+error — fix the URL and resubmit.
 
-## Verify the signature
+## Verifying authenticity
 
-Every delivery is signed so you can confirm it came from FreeModel. The
-request carries these headers:
+The callback needs no secret — treat it as a **notification**, and confirm the
+result with the source of truth: fetch
+[`GET /v1/tasks/{id}`](/api-reference/task-status) using your own API key
+before acting on it. Your key only sees your own tasks, so a forged callback
+cannot show you someone else's data or fake a task you never created.
 
-| Header | Value |
-| --- | --- |
-| `X-Shim-Event` | The event type. |
-| `X-Shim-Delivery` | The event ID. |
-| `X-Shim-Signature` | `t=<unix seconds>,v1=<hex digest>` |
-
-The digest is `HMAC-SHA256(secret, "<t>.<raw request body>")`. Compute it over
-the raw body bytes — do not parse and re-serialize the JSON first. Reject
-deliveries whose timestamp is more than five minutes old to prevent replays.
+## Minimal receiver
 
 <CodeGroup>
 ```javascript Node.js
-const crypto = require("node:crypto");
+const http = require("node:http");
 
-function verifyWebhook(secret, rawBody, signatureHeader, toleranceSec = 300) {
-  const parts = Object.fromEntries(
-    signatureHeader.split(",").map((part) => part.split("=", 2)),
-  );
-  if (Math.abs(Date.now() / 1000 - Number(parts.t)) > toleranceSec) {
-    return false;
-  }
-  const expected = crypto
-    .createHmac("sha256", secret)
-    .update(`${parts.t}.${rawBody}`)
-    .digest("hex");
-  const given = Buffer.from(parts.v1 ?? "");
-  return (
-    given.length === expected.length &&
-    crypto.timingSafeEqual(Buffer.from(expected), given)
-  );
-}
+http.createServer((req, res) => {
+  let body = "";
+  req.on("data", (chunk) => (body += chunk));
+  req.on("end", () => {
+    res.writeHead(200).end("ok"); // acknowledge first
+    const task = JSON.parse(body);
+    console.log("task finished:", task.id, task.status);
+    // dedupe on task.id + task.status, then confirm via GET /v1/tasks/{id}
+  });
+}).listen(3000);
 ```
 
 ```python Python
-import hashlib
-import hmac
-import time
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import json
 
+class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        length = int(self.headers.get("Content-Length") or 0)
+        task = json.loads(self.rfile.read(length))
+        self.send_response(200)
+        self.end_headers()  # acknowledge first
+        print("task finished:", task["id"], task["status"])
+        # dedupe on id + status, then confirm via GET /v1/tasks/{id}
 
-def verify_webhook(secret, raw_body, signature_header, tolerance_sec=300):
-    parts = dict(part.split("=", 1) for part in signature_header.split(","))
-    if abs(time.time() - int(parts["t"])) > tolerance_sec:
-        return False
-    expected = hmac.new(
-        secret.encode(),
-        f"{parts['t']}.{raw_body}".encode(),
-        hashlib.sha256,
-    ).hexdigest()
-    return hmac.compare_digest(expected, parts.get("v1", ""))
+HTTPServer(("0.0.0.0", 3000), Handler).serve_forever()
 ```
 </CodeGroup>
 
-## Delivery and retries
+## FAQ
 
-- Respond with any `2xx` status within 10 seconds to acknowledge the event.
-  Acknowledge first, then process — long handlers risk hitting the timeout and
-  being retried.
-- Failed deliveries are retried with backoff: 30 seconds, 1 minute, 5 minutes,
-  15 minutes, 1 hour, 2 hours. After six failed attempts the event is dropped.
-- Deliveries can arrive more than once. Deduplicate on the event `id`.
-- Events for generations that finished more than six hours before your
-  endpoint came online are not sent — enabling webhooks never floods your
-  endpoint with history.
-
-## Handler checklist
-
-1. Verify the `X-Shim-Signature` header before trusting the payload.
-2. Return `200` immediately; enqueue any heavy work.
-3. Deduplicate on the event `id`.
-4. Match the event to your records with `data.gateway_task_id`.
-5. Download and persist `data.result_urls` — the URLs expire after 14 days.
-
-Polling remains fully supported: webhooks are an optimization, and
-[`GET /videos/{id}`](/api-reference/video-generation#poll-video-status) always
-reflects the latest state.
+<AccordionGroup>
+  <Accordion title="I submitted with a webhook but received nothing">
+    Check, in order: (1) has the task actually finished? Fetch
+    `GET /v1/tasks/{id}` — webhooks only fire on `completed`/`failed`;
+    (2) is your URL publicly reachable from the internet; (3) does your
+    endpoint return `2xx` within 10 seconds — a `4xx` stops delivery
+    permanently.
+  </Accordion>
+  <Accordion title="Why is result.videos[].url an array?">
+    Some models return multiple files per task. Handle it as an array even
+    when it contains one URL.
+  </Accordion>
+  <Accordion title="How long do result links work?">
+    Until `expires_at` (media is retained for 14 days). Download the files to
+    your own storage promptly.
+  </Accordion>
+  <Accordion title="Do webhooks replace polling?">
+    Polling stays fully supported. Webhooks are an optimization — if a
+    delivery is missed, `GET /v1/tasks/{id}` always has the latest state.
+  </Accordion>
+</AccordionGroup>

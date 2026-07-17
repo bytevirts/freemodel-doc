@@ -9,7 +9,7 @@ description: "Create, monitor, and download videos with the OpenAI Videos API."
 
 Video generation is asynchronous. Submit a video request, poll its status until it completes, then download the MP4 file. Generation usually completes in two to five minutes. Poll every 10 to 20 seconds.
 
-Prefer push over polling? [Webhooks](/api-reference/webhooks) deliver a signed notification to your server the moment a generation succeeds or fails.
+Prefer push over polling? Add a [`webhook`](/api-reference/webhooks) URL to the request and the result is POSTed to your server when the generation finishes. You can also check any task with the unified [Get task status](/api-reference/task-status) endpoint.
 
 Available models: `gemini-omni-t2v` (text-to-video), `gemini-omni-i2v` (image-to-video), `gemini-omni-r2v` (reference-to-video), and `gemini-omni-extend` (video extend). The i2v, r2v, and extend modes require the `image_urls` field.
 
@@ -108,6 +108,7 @@ Save the returned `id`. You use it to poll the request and download the complete
 | `seconds` | string | Yes | Set this field to the string `"10"`. Videos are fixed at 10 seconds. Any other value returns an `invalid_request` error. |
 | `size` | string | No | Video dimensions. Defaults to `1280x720`. See supported values below. |
 | `image_urls` | string[] | For i2v / r2v / extend | 1-5 public http(s) image URLs. `gemini-omni-i2v` animates the image, `r2v` uses them as references, `extend` continues from the last frame. Not accepted by `t2v`. |
+| `webhook` | string | No | Public http(s) URL. When the task finishes, its [status object](/api-reference/task-status) is POSTed there — see [Task webhooks](/api-reference/webhooks). |
 
 | `size` value | Aspect ratio | Resolution |
 | --- | --- | --- |
