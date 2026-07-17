@@ -17,9 +17,13 @@ curl https://api.freemodel.app/v1/videos \
     "model": "gemini-omni-t2v",
     "prompt": "A paper airplane glides through a sunlit library",
     "seconds": "10",
-    "webhook": "https://your-server.com/freemodel/callback"
+    "webhook": "https://your-server.com/freemodel/callback",
+    "webhook_secret": "your-random-secret"
   }'
 ```
+
+`webhook_secret` is optional — it makes deliveries
+[HMAC-signed](#verifying-authenticity) so you can verify them.
 
 We POST to exactly the URL you provide. Webhooks fire only on **final states**
 (`completed` / `failed`) — never while the task is still running.
@@ -94,8 +98,7 @@ Two options, from simplest to strongest:
 **Option 1 — re-fetch (no secret needed).** Treat the callback as a
 notification and confirm the result with the source of truth: fetch
 [`GET /v1/tasks/{id}`](/api-reference/task-status) using your own API key
-before acting on it. Your key only sees your own tasks, so a forged callback
-cannot show you someone else's data or fake a task you never created.
+before acting on it. A forged callback cannot survive that check.
 
 **Option 2 — signed webhooks.** Pass a `webhook_secret` (8–128 characters,
 you choose it) alongside `webhook` when submitting:
