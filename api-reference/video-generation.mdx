@@ -9,6 +9,8 @@ description: "Create, monitor, and download videos with the OpenAI Videos API."
 
 Video generation is asynchronous. Submit a video request, poll its status until it completes, then download the MP4 file. Generation usually completes in two to five minutes. Poll every 10 to 20 seconds.
 
+Prefer push over polling? [Webhooks](/api-reference/webhooks) deliver a signed notification to your server the moment a generation succeeds or fails.
+
 Available models: `gemini-omni-t2v` (text-to-video), `gemini-omni-i2v` (image-to-video), `gemini-omni-r2v` (reference-to-video), and `gemini-omni-extend` (video extend). The i2v, r2v, and extend modes require the `image_urls` field.
 
 ## Submit a video request

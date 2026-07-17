@@ -53,6 +53,7 @@
               "api-reference/embeddings",
               "api-reference/images",
               "api-reference/video-generation",
+              "api-reference/webhooks",
               "api-reference/claude-messages",
               "api-reference/gemini-generate-content",
               "api-reference/list-models"

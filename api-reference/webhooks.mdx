@@ -1,0 +1,148 @@
+---
+title: "Webhooks"
+description: "Receive signed push notifications when a video generation finishes, instead of polling."
+---
+
+Webhooks notify your server the moment an asynchronous generation reaches a
+final state. Instead of polling `GET /videos/{id}` every 10 to 20 seconds, you
+receive one HTTP POST per generation with the outcome and the result URLs.
+
+<Info>
+  Webhook endpoints are currently registered per account by the FreeModel team.
+  Contact [support@freemodel.app](mailto:support@freemodel.app) with your
+  endpoint URL to enable webhooks and receive your signing secret.
+</Info>
+
+## Event types
+
+| Type | Sent when |
+| --- | --- |
+| `task.succeeded` | A generation completed and its result URLs are available. |
+| `task.failed` | A generation failed. Failed generations are automatically refunded. |
+
+Only asynchronous generations produce events. Video requests (`POST /videos`)
+are asynchronous; image requests return their result in the response, so they
+do not produce events.
+
+## Event payload
+
+Your endpoint receives a JSON body:
+
+```json
+{
+  "id": "evt_584638c942d672cd2ed3dfc22d4c0a60",
+  "object": "event",
+  "type": "task.succeeded",
+  "created_at": 1784324664,
+  "data": {
+    "id": "gen_19efcaa443214330bd832996b3e53897",
+    "object": "task",
+    "gateway_task_id": "task_QzZ7QQekXySDrCRociwlGTJs1cNY6Ygl",
+    "kind": "video",
+    "model": "gemini-omni-t2v",
+    "status": "succeeded",
+    "result_urls": ["https://storage.example.com/videos/output.mp4"],
+    "error": null,
+    "prompt": "A red fox trotting through fresh snow at dawn",
+    "created_at": 1784324432,
+    "completed_at": 1784324660
+  }
+}
+```
+
+| Field | Description |
+| --- | --- |
+| `id` | Event ID. Stable per generation and outcome — deduplicate on it. |
+| `type` | `task.succeeded` or `task.failed`. |
+| `data.gateway_task_id` | The `id` returned when you submitted the request (`task_…`). Use this to match the event to your generation. |
+| `data.id` | FreeModel's internal generation ID (`gen_…`). |
+| `data.status` | `succeeded` or `failed`. |
+| `data.result_urls` | Direct download URLs for the generated media. Empty when the generation failed. |
+| `data.error` | Failure reason, or `null`. |
+| `data.created_at` / `data.completed_at` | Unix timestamps (seconds) for submission and completion. |
+
+<Warning>
+  Download `result_urls` promptly and store the media yourself. Generated media
+  is retained for 14 days; the URLs stop working after that.
+</Warning>
+
+## Verify the signature
+
+Every delivery is signed so you can confirm it came from FreeModel. The
+request carries these headers:
+
+| Header | Value |
+| --- | --- |
+| `X-Shim-Event` | The event type. |
+| `X-Shim-Delivery` | The event ID. |
+| `X-Shim-Signature` | `t=<unix seconds>,v1=<hex digest>` |
+
+The digest is `HMAC-SHA256(secret, "<t>.<raw request body>")`. Compute it over
+the raw body bytes — do not parse and re-serialize the JSON first. Reject
+deliveries whose timestamp is more than five minutes old to prevent replays.
+
+<CodeGroup>
+```javascript Node.js
+const crypto = require("node:crypto");
+
+function verifyWebhook(secret, rawBody, signatureHeader, toleranceSec = 300) {
+  const parts = Object.fromEntries(
+    signatureHeader.split(",").map((part) => part.split("=", 2)),
+  );
+  if (Math.abs(Date.now() / 1000 - Number(parts.t)) > toleranceSec) {
+    return false;
+  }
+  const expected = crypto
+    .createHmac("sha256", secret)
+    .update(`${parts.t}.${rawBody}`)
+    .digest("hex");
+  const given = Buffer.from(parts.v1 ?? "");
+  return (
+    given.length === expected.length &&
+    crypto.timingSafeEqual(Buffer.from(expected), given)
+  );
+}
+```
+
+```python Python
+import hashlib
+import hmac
+import time
+
+
+def verify_webhook(secret, raw_body, signature_header, tolerance_sec=300):
+    parts = dict(part.split("=", 1) for part in signature_header.split(","))
+    if abs(time.time() - int(parts["t"])) > tolerance_sec:
+        return False
+    expected = hmac.new(
+        secret.encode(),
+        f"{parts['t']}.{raw_body}".encode(),
+        hashlib.sha256,
+    ).hexdigest()
+    return hmac.compare_digest(expected, parts.get("v1", ""))
+```
+</CodeGroup>
+
+## Delivery and retries
+
+- Respond with any `2xx` status within 10 seconds to acknowledge the event.
+  Acknowledge first, then process — long handlers risk hitting the timeout and
+  being retried.
+- Failed deliveries are retried with backoff: 30 seconds, 1 minute, 5 minutes,
+  15 minutes, 1 hour, 2 hours. After six failed attempts the event is dropped.
+- Deliveries can arrive more than once. Deduplicate on the event `id`.
+- Events for generations that finished more than six hours before your
+  endpoint came online are not sent — enabling webhooks never floods your
+  endpoint with history.
+
+## Handler checklist
+
+1. Verify the `X-Shim-Signature` header before trusting the payload.
+2. Return `200` immediately; enqueue any heavy work.
+3. Deduplicate on the event `id`.
+4. Match the event to your records with `data.gateway_task_id`.
+5. Download and persist `data.result_urls` — the URLs expire after 14 days.
+
+Polling remains fully supported: webhooks are an optimization, and
+[`GET /videos/{id}`](/api-reference/video-generation#poll-video-status) always
+reflects the latest state.
