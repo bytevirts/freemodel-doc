@@ -58,11 +58,16 @@ Failed tasks arrive with `"status": "failed"`, `"result": null`, and
 
 - Respond with any `2xx` within 10 seconds. Acknowledge first, process
   asynchronously.
-- No `2xx` (timeout or `5xx`): we retry after **10s, 30s, 60s**, then give up.
+- No `2xx` (timeout or `5xx`): we retry after **10s, 30s, 60s, then 5m, 30m,
+  and 2h** — about three hours in total, so a deploy window or short outage
+  on your side doesn't lose the notification.
 - A `4xx` response means your address rejected the request — we stop
   immediately, no retries.
 - In rare cases you may receive the same notification twice. Deduplicate on
   `id` + `status`.
+- Webhooks are an optimization, not the source of truth: if all retries are
+  exhausted, [`GET /v1/tasks/{id}`](/api-reference/task-status) still has the
+  result. Keep a reconciliation poll for tasks you haven't heard back about.
 
 ## Webhook URL requirements
 
@@ -75,13 +80,74 @@ Failed tasks arrive with `"status": "failed"`, `"result": null`, and
 An invalid `webhook` value fails the submission with an `invalid_request`
 error — fix the URL and resubmit.
 
+<Note>
+  Developing locally? Private addresses can't receive webhooks — expose your
+  handler with a tunnel (for example `cloudflared tunnel` or `ngrok http
+  3000`) and use the tunnel URL, or just poll
+  [`GET /v1/tasks/{id}`](/api-reference/task-status) during development.
+</Note>
+
 ## Verifying authenticity
 
-The callback needs no secret — treat it as a **notification**, and confirm the
-result with the source of truth: fetch
+Two options, from simplest to strongest:
+
+**Option 1 — re-fetch (no secret needed).** Treat the callback as a
+notification and confirm the result with the source of truth: fetch
 [`GET /v1/tasks/{id}`](/api-reference/task-status) using your own API key
 before acting on it. Your key only sees your own tasks, so a forged callback
 cannot show you someone else's data or fake a task you never created.
+
+**Option 2 — signed webhooks.** Pass a `webhook_secret` (8–128 characters,
+you choose it) alongside `webhook` when submitting:
+
+```json
+{ "webhook": "https://your-server.com/callback", "webhook_secret": "your-random-secret" }
+```
+
+Deliveries for that task then carry an
+`X-Shim-Signature: t=<unix seconds>,v1=<hex>` header, where
+`v1 = HMAC-SHA256(webhook_secret, "<t>.<raw request body>")`. Compute over the
+raw body bytes and reject timestamps older than five minutes:
+
+<CodeGroup>
+```javascript Node.js
+const crypto = require("node:crypto");
+
+function verifyWebhook(secret, rawBody, header, toleranceSec = 300) {
+  const parts = Object.fromEntries(
+    header.split(",").map((p) => p.split("=", 2)),
+  );
+  if (Math.abs(Date.now() / 1000 - Number(parts.t)) > toleranceSec) return false;
+  const expected = crypto
+    .createHmac("sha256", secret)
+    .update(`${parts.t}.${rawBody}`)
+    .digest("hex");
+  const given = Buffer.from(parts.v1 ?? "");
+  return (
+    given.length === expected.length &&
+    crypto.timingSafeEqual(Buffer.from(expected), given)
+  );
+}
+```
+
+```python Python
+import hashlib
+import hmac
+import time
+
+
+def verify_webhook(secret, raw_body, signature_header, tolerance_sec=300):
+    parts = dict(p.split("=", 1) for p in signature_header.split(","))
+    if abs(time.time() - int(parts["t"])) > tolerance_sec:
+        return False
+    expected = hmac.new(
+        secret.encode(),
+        f"{parts['t']}.{raw_body}".encode(),
+        hashlib.sha256,
+    ).hexdigest()
+    return hmac.compare_digest(expected, parts.get("v1", ""))
+```
+</CodeGroup>
 
 ## Minimal receiver
 
@@ -139,5 +205,10 @@ HTTPServer(("0.0.0.0", 3000), Handler).serve_forever()
   <Accordion title="Do webhooks replace polling?">
     Polling stays fully supported. Webhooks are an optimization — if a
     delivery is missed, `GET /v1/tasks/{id}` always has the latest state.
+    For anything critical, keep a reconciliation poll as the fallback.
+  </Accordion>
+  <Accordion title="Can I receive webhooks on localhost?">
+    No — private addresses are rejected for security. Use a tunnel
+    (`cloudflared`, `ngrok`) during development, or poll instead.
   </Accordion>
 </AccordionGroup>

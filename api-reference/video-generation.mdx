@@ -109,6 +109,7 @@ Save the returned `id`. You use it to poll the request and download the complete
 | `size` | string | No | Video dimensions. Defaults to `1280x720`. See supported values below. |
 | `image_urls` | string[] | For i2v / r2v / extend | 1-5 public http(s) image URLs. `gemini-omni-i2v` animates the image, `r2v` uses them as references, `extend` continues from the last frame. Not accepted by `t2v`. |
 | `webhook` | string | No | Public http(s) URL. When the task finishes, its [status object](/api-reference/task-status) is POSTed there — see [Task webhooks](/api-reference/webhooks). |
+| `webhook_secret` | string | No | 8-128 characters, used with `webhook`. Deliveries are then HMAC-signed (`X-Shim-Signature`) so you can verify them. |
 
 | `size` value | Aspect ratio | Resolution |
 | --- | --- | --- |
