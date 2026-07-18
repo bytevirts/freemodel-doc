@@ -98,5 +98,13 @@
       "cursor",
       "vscode"
     ]
+  },
+  "api": {
+    "mdx": {
+      "server": "https://api.freemodel.app",
+      "auth": {
+        "method": "bearer"
+      }
+    }
   }
 }

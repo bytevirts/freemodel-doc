@@ -1,21 +1,36 @@
 ---
 title: "Images"
 description: "Generate images with the OpenAI-compatible API."
+api: "POST /v1/images/generations"
 ---
-
-<Info>
-  Base URL: `https://api.freemodel.app/v1`
-</Info>
 
 Generate one image from a text prompt. Image generation is synchronous and usually completes in 20 to 60 seconds. Set your client timeout to at least 120 seconds.
 
-## Create an image
+The response contains the generated image as base64 in `data[0].b64_json`. Decode it and write the bytes to an image file. On macOS, replace `base64 --decode` in the curl example with `base64 -D`.
 
-`POST /images/generations`
+<ParamField body="model" type="string" required>
+  Use `gpt-image-2`.
+</ParamField>
 
-The response contains the generated image as base64 in `data[0].b64_json`. Decode it and write the bytes to an image file.
+<ParamField body="prompt" type="string" required>
+  Describe the image you want to generate.
+</ParamField>
 
-<CodeGroup>
+<ParamField body="size" type="string">
+  `1024x1024` creates a 1:1 image. `1536x1024` creates a 3:2 image.
+  `1024x1536` creates a 2:3 image. Omit this field, or use another value, to
+  use the automatic aspect ratio.
+</ParamField>
+
+<ParamField body="n" type="integer">
+  Omit this field or set it to `1`. Multiple images are not supported.
+</ParamField>
+
+<Note>
+  Output quality is fixed at 1K in v1. Each image costs $0.01. See the [models page](https://freemodel.app/models) for current rates.
+</Note>
+
+<RequestExample>
 ```bash Curl
 curl https://api.freemodel.app/v1/images/generations \
   -H "Authorization: Bearer $FREEMODEL_API_KEY" \
@@ -87,10 +102,9 @@ async function main() {
 
 main();
 ```
-</CodeGroup>
+</RequestExample>
 
-On macOS, replace `base64 --decode` in the curl example with `base64 -D`.
-
+<ResponseExample>
 ```json Response
 {
   "created": 1784045139,
@@ -101,16 +115,4 @@ On macOS, replace `base64 --decode` in the curl example with `base64 -D`.
   ]
 }
 ```
-
-## Request body
-
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `model` | string | Yes | Use `gpt-image-2`. |
-| `prompt` | string | Yes | Describe the image you want to generate. |
-| `size` | string | No | `1024x1024` creates a 1:1 image. `1536x1024` creates a 3:2 image. `1024x1536` creates a 2:3 image. Omit this field, or use another value, to use the automatic aspect ratio. |
-| `n` | integer | No | Omit this field or set it to `1`. Multiple images are not supported. |
-
-<Note>
-  Output quality is fixed at 1K in v1. Each image costs $0.01. See the [models page](https://freemodel.app/models) for current rates.
-</Note>
+</ResponseExample>

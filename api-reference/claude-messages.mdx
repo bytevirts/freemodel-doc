@@ -1,21 +1,41 @@
 ---
 title: "Claude messages"
 description: "Use the Anthropic Messages-compatible endpoint."
+api: "POST /v1/messages"
 ---
 
 <Warning>
   This is a compatibility endpoint for existing Anthropic-style integrations. For new integrations, use the [OpenAI-compatible API](/api-reference/chat-completions).
 </Warning>
 
-`POST https://api.freemodel.app/v1/messages`
+Choose a Claude-compatible model ID returned by [`GET /v1/models`](/api-reference/list-models). FreeModel accepts a standard Bearer key; integrations that send an `x-api-key` header can also use a FreeModel `sk-...` key.
 
-Choose a Claude-compatible model ID returned by [`GET /v1/models`](/api-reference/list-models).
+<ParamField body="model" type="string" required>
+  A Claude-compatible model ID available to your key.
+</ParamField>
 
-## Create a message
+<ParamField body="messages" type="array" required>
+  Anthropic-style conversation messages.
+</ParamField>
 
-FreeModel accepts a standard Bearer key. Integrations that send an `x-api-key` header can also use a FreeModel `sk-...` key.
+<ParamField body="max_tokens" type="integer" required>
+  Maximum tokens to generate.
+</ParamField>
 
-```bash
+<ParamField body="stream" type="boolean">
+  Set to `true` when your client expects an event stream.
+</ParamField>
+
+<ParamField body="temperature" type="number">
+  Sampling variation when supported by the selected model.
+</ParamField>
+
+<Tip>
+  With an Anthropic SDK, set its base URL to `https://api.freemodel.app`. See [Anthropic SDK](/sdks/anthropic-sdk).
+</Tip>
+
+<RequestExample>
+```bash Curl
 curl https://api.freemodel.app/v1/messages \
   -H "Authorization: Bearer sk-xxxx" \
   -H "anthropic-version: 2023-06-01" \
@@ -31,7 +51,9 @@ curl https://api.freemodel.app/v1/messages \
     ]
   }'
 ```
+</RequestExample>
 
+<ResponseExample>
 ```json Response
 {
   "id": "msg_01HXYZ",
@@ -51,17 +73,4 @@ curl https://api.freemodel.app/v1/messages \
   }
 }
 ```
-
-## Request body
-
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `model` | string | Yes | A Claude-compatible model ID available to your key. |
-| `messages` | array | Yes | Anthropic-style conversation messages. |
-| `max_tokens` | integer | Yes | Maximum tokens to generate. |
-| `stream` | boolean | No | Set to `true` when your client expects an event stream. |
-| `temperature` | number | No | Sampling variation when supported by the selected model. |
-
-<Tip>
-  With an Anthropic SDK, set its base URL to `https://api.freemodel.app`. See [Anthropic SDK](/sdks/anthropic-sdk).
-</Tip>
+</ResponseExample>

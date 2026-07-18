@@ -1,21 +1,36 @@
 ---
 title: "Gemini generateContent"
 description: "Use the Gemini generateContent-compatible endpoint."
+api: "POST /v1beta/models/{model}:generateContent"
 ---
 
 <Warning>
   This is a compatibility endpoint for existing Gemini-style integrations. For new integrations, use the [OpenAI-compatible API](/api-reference/chat-completions).
 </Warning>
 
-`POST https://api.freemodel.app/v1beta/models/{model}:generateContent`
-
-Choose a Gemini-compatible model ID returned by [`GET /v1/models`](/api-reference/list-models). Substitute it for `<gemini-model-id>` in the path.
-
-## Generate content
-
 Authenticate with a Bearer key. The gateway also accepts a FreeModel key in the `key` query parameter for Gemini-style clients.
 
-```bash
+<ParamField path="model" type="string" required>
+  A Gemini-compatible model ID returned by
+  [`GET /v1/models`](/api-reference/list-models).
+</ParamField>
+
+<ParamField body="contents" type="array" required>
+  Gemini-style content objects containing `parts`.
+</ParamField>
+
+<ParamField body="generationConfig" type="object">
+  `generationConfig.temperature` (number) controls sampling variation;
+  `generationConfig.maxOutputTokens` (integer) caps generated tokens when
+  supported.
+</ParamField>
+
+<Note>
+  Model availability can change. The [models page](https://freemodel.app/models) lists the current catalog and pricing.
+</Note>
+
+<RequestExample>
+```bash Curl
 curl "https://api.freemodel.app/v1beta/models/<gemini-model-id>:generateContent" \
   -H "Authorization: Bearer sk-xxxx" \
   -H "Content-Type: application/json" \
@@ -34,7 +49,9 @@ curl "https://api.freemodel.app/v1beta/models/<gemini-model-id>:generateContent"
     }
   }'
 ```
+</RequestExample>
 
+<ResponseExample>
 ```json Response
 {
   "candidates": [
@@ -57,16 +74,4 @@ curl "https://api.freemodel.app/v1beta/models/<gemini-model-id>:generateContent"
   }
 }
 ```
-
-## Request body
-
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| Path `model` | string | Yes | A Gemini-compatible model ID available to your key. |
-| `contents` | array | Yes | Gemini-style content objects containing `parts`. |
-| `generationConfig.temperature` | number | No | Sampling variation. |
-| `generationConfig.maxOutputTokens` | integer | No | Maximum tokens to generate when supported. |
-
-<Note>
-  Model availability can change. The [models page](https://freemodel.app/models) lists the current catalog and pricing.
-</Note>
+</ResponseExample>

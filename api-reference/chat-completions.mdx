@@ -1,72 +1,31 @@
 ---
 title: "Chat completions"
 description: "Create OpenAI-compatible chat completions and streams."
+api: "POST /v1/chat/completions"
 ---
-
-<Info>
-  Base URL: `https://api.freemodel.app/v1`
-</Info>
 
 Create a model response from a list of chat messages.
 
-## Create a completion
+<ParamField body="model" type="string" required>
+  A model ID available to your API key. Use
+  [`GET /v1/models`](/api-reference/list-models) to discover IDs.
+</ParamField>
 
-`POST /chat/completions`
+<ParamField body="messages" type="array" required>
+  Ordered chat messages. Each message includes a `role` and `content`.
+</ParamField>
 
-```bash
-curl https://api.freemodel.app/v1/chat/completions \
-  -H "Authorization: Bearer sk-xxxx" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.4-mini",
-    "messages": [
-      {
-        "role": "system",
-        "content": "You answer in one concise sentence."
-      },
-      {
-        "role": "user",
-        "content": "What is an API gateway?"
-      }
-    ],
-    "temperature": 0.2,
-    "max_tokens": 100
-  }'
-```
+<ParamField body="stream" type="boolean" default="false">
+  Set to `true` to receive server-sent events.
+</ParamField>
 
-```json Response
-{
-  "id": "chatcmpl_01HXYZ",
-  "object": "chat.completion",
-  "created": 1730000000,
-  "model": "gpt-5.4-mini",
-  "choices": [
-    {
-      "index": 0,
-      "message": {
-        "role": "assistant",
-        "content": "An API gateway is a service that provides one interface for routing requests to one or more APIs."
-      },
-      "finish_reason": "stop"
-    }
-  ],
-  "usage": {
-    "prompt_tokens": 25,
-    "completion_tokens": 19,
-    "total_tokens": 44
-  }
-}
-```
+<ParamField body="temperature" type="number">
+  Controls sampling variation. Lower values are more deterministic.
+</ParamField>
 
-## Request body
-
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `model` | string | Yes | A model ID available to your API key. Use `GET /v1/models` to discover IDs. |
-| `messages` | array | Yes | Ordered chat messages. Each message includes a `role` and `content`. |
-| `stream` | boolean | No | Set to `true` to receive server-sent events. Defaults to `false`. |
-| `temperature` | number | No | Controls sampling variation. Lower values are more deterministic. |
-| `max_tokens` | integer | No | Caps generated tokens when supported by the selected model. |
+<ParamField body="max_tokens" type="integer">
+  Caps generated tokens when supported by the selected model.
+</ParamField>
 
 ## Stream a response
 
@@ -98,3 +57,52 @@ data: [DONE]
 <Tip>
   Concatenate `choices[0].delta.content` values as they arrive. A delta can omit `content`, especially in the first or final event.
 </Tip>
+
+<RequestExample>
+```bash Curl
+curl https://api.freemodel.app/v1/chat/completions \
+  -H "Authorization: Bearer sk-xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-5.4-mini",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You answer in one concise sentence."
+      },
+      {
+        "role": "user",
+        "content": "What is an API gateway?"
+      }
+    ],
+    "temperature": 0.2,
+    "max_tokens": 100
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "id": "chatcmpl_01HXYZ",
+  "object": "chat.completion",
+  "created": 1730000000,
+  "model": "gpt-5.4-mini",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "An API gateway is a service that provides one interface for routing requests to one or more APIs."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 25,
+    "completion_tokens": 19,
+    "total_tokens": 44
+  }
+}
+```
+</ResponseExample>

@@ -1,11 +1,8 @@
 ---
 title: "Video generation"
 description: "Create, monitor, and download videos with the OpenAI Videos API."
+api: "POST /v1/videos"
 ---
-
-<Info>
-  Base URL: `https://api.freemodel.app/v1`
-</Info>
 
 Video generation is asynchronous. Submit a video request, poll its status until it completes, then download the MP4 file. Generation usually completes in two to five minutes. Poll every 10 to 20 seconds.
 
@@ -13,110 +10,43 @@ Prefer push over polling? Add a [`webhook`](/api-reference/webhooks) URL to the 
 
 Available models: `gemini-omni-t2v` (text-to-video), `gemini-omni-i2v` (image-to-video), `gemini-omni-r2v` (reference-to-video), and `gemini-omni-extend` (video extend). The i2v, r2v, and extend modes require the `image_urls` field.
 
-## Submit a video request
+<ParamField body="model" type="string" required>
+  One of `gemini-omni-t2v`, `gemini-omni-i2v`, `gemini-omni-r2v`,
+  `gemini-omni-extend`.
+</ParamField>
 
-`POST /videos`
+<ParamField body="prompt" type="string" required>
+  Describe the video you want to generate.
+</ParamField>
 
-<CodeGroup>
-```bash Curl
-curl https://api.freemodel.app/v1/videos \
-  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gemini-omni-t2v",
-    "prompt": "A paper airplane glides through a sunlit library, cinematic tracking shot",
-    "seconds": "10",
-    "size": "1280x720"
-  }'
-```
+<ParamField body="seconds" type="string" required>
+  Set this field to the string `"10"`. Videos are fixed at 10 seconds. Any
+  other value returns an `invalid_request` error.
+</ParamField>
 
-```python Python
-import json
-import os
-from urllib.request import Request, urlopen
+<ParamField body="size" type="string" default="1280x720">
+  Video dimensions: `1280x720` (16:9 720p), `1920x1080` (16:9 1080p),
+  `720x1280` (9:16 portrait), or `1024x1024` (1:1 square).
+</ParamField>
 
-request = Request(
-    "https://api.freemodel.app/v1/videos",
-    data=json.dumps({
-        "model": "gemini-omni-t2v",
-        "prompt": "A paper airplane glides through a sunlit library, cinematic tracking shot",
-        "seconds": "10",
-        "size": "1280x720",
-    }).encode(),
-    headers={
-        "Authorization": f"Bearer {os.environ['FREEMODEL_API_KEY']}",
-        "Content-Type": "application/json",
-    },
-    method="POST",
-)
+<ParamField body="image_urls" type="string[]">
+  Required for i2v / r2v / extend: 1-5 public http(s) image URLs.
+  `gemini-omni-i2v` animates the image, `r2v` uses them as references,
+  `extend` continues from the last frame. Not accepted by `t2v`.
+</ParamField>
 
-with urlopen(request) as response:
-    video = json.load(response)
+<ParamField body="webhook" type="string">
+  Public http(s) URL. When the task finishes, its
+  [status object](/api-reference/task-status) is POSTed there — see
+  [Task webhooks](/api-reference/webhooks).
+</ParamField>
 
-print(video["id"])
-```
-
-```javascript Node.js
-async function main() {
-  const response = await fetch("https://api.freemodel.app/v1/videos", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.FREEMODEL_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gemini-omni-t2v",
-      prompt: "A paper airplane glides through a sunlit library, cinematic tracking shot",
-      seconds: "10",
-      size: "1280x720",
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(await response.text());
-  }
-
-  const video = await response.json();
-  console.log(video.id);
-}
-
-main();
-```
-</CodeGroup>
-
-```json Response
-{
-  "id": "task_01HXYZ",
-  "object": "video",
-  "status": "queued",
-  "progress": 0,
-  "model": "gemini-omni-t2v",
-  "created_at": 1784045139,
-  "seconds": "10",
-  "size": "1280x720"
-}
-```
+<ParamField body="webhook_secret" type="string">
+  8-128 characters, used with `webhook`. Deliveries are then HMAC-signed
+  (`X-Shim-Signature`) so you can verify them.
+</ParamField>
 
 Save the returned `id`. You use it to poll the request and download the completed video.
-
-### Request body
-
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `model` | string | Yes | One of `gemini-omni-t2v`, `gemini-omni-i2v`, `gemini-omni-r2v`, `gemini-omni-extend`. |
-| `prompt` | string | Yes | Describe the video you want to generate. |
-| `seconds` | string | Yes | Set this field to the string `"10"`. Videos are fixed at 10 seconds. Any other value returns an `invalid_request` error. |
-| `size` | string | No | Video dimensions. Defaults to `1280x720`. See supported values below. |
-| `image_urls` | string[] | For i2v / r2v / extend | 1-5 public http(s) image URLs. `gemini-omni-i2v` animates the image, `r2v` uses them as references, `extend` continues from the last frame. Not accepted by `t2v`. |
-| `webhook` | string | No | Public http(s) URL. When the task finishes, its [status object](/api-reference/task-status) is POSTed there — see [Task webhooks](/api-reference/webhooks). |
-| `webhook_secret` | string | No | 8-128 characters, used with `webhook`. Deliveries are then HMAC-signed (`X-Shim-Signature`) so you can verify them. |
-
-| `size` value | Aspect ratio | Resolution |
-| --- | --- | --- |
-| `1280x720` | 16:9 | 720p |
-| `1920x1080` | 16:9 | 1080p |
-| `720x1280` | 9:16 | Portrait |
-| `1024x1024` | 1:1 | Square |
 
 ## Poll video status
 
@@ -124,48 +54,10 @@ Save the returned `id`. You use it to poll the request and download the complete
 
 Replace `task_01HXYZ` with the ID returned when you submitted the video.
 
-<CodeGroup>
-```bash Curl
+```bash
 curl https://api.freemodel.app/v1/videos/task_01HXYZ \
   -H "Authorization: Bearer $FREEMODEL_API_KEY"
 ```
-
-```python Python
-import json
-import os
-from urllib.request import Request, urlopen
-
-video_id = "task_01HXYZ"
-request = Request(
-    f"https://api.freemodel.app/v1/videos/{video_id}",
-    headers={"Authorization": f"Bearer {os.environ['FREEMODEL_API_KEY']}"},
-)
-
-with urlopen(request) as response:
-    video = json.load(response)
-
-print(video["status"])
-```
-
-```javascript Node.js
-async function main() {
-  const videoId = "task_01HXYZ";
-  const response = await fetch(
-    `https://api.freemodel.app/v1/videos/${videoId}`,
-    { headers: { Authorization: `Bearer ${process.env.FREEMODEL_API_KEY}` } },
-  );
-
-  if (!response.ok) {
-    throw new Error(await response.text());
-  }
-
-  const video = await response.json();
-  console.log(video.status);
-}
-
-main();
-```
-</CodeGroup>
 
 ```json Response
 {
@@ -233,6 +125,12 @@ main();
 ```
 </CodeGroup>
 
+<Tip>
+  To skip the binary download through the gateway, take the direct
+  `result.videos[].url` from [Get task status](/api-reference/task-status)
+  instead.
+</Tip>
+
 ## Handle video errors
 
 | Condition | Response | Action |
@@ -246,3 +144,77 @@ See [Errors](/errors#video-request-error) for the `invalid_request` response for
 <Note>
   A 10-second video costs $0.25. See the [models page](https://freemodel.app/models) for current rates.
 </Note>
+
+<RequestExample>
+```bash Curl
+curl https://api.freemodel.app/v1/videos \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-omni-t2v",
+    "prompt": "A paper airplane glides through a sunlit library, cinematic tracking shot",
+    "seconds": "10",
+    "size": "1280x720"
+  }'
+```
+
+```python Python
+import json
+import os
+from urllib.request import Request, urlopen
+
+request = Request(
+    "https://api.freemodel.app/v1/videos",
+    data=json.dumps({
+        "model": "gemini-omni-t2v",
+        "prompt": "A paper airplane glides through a sunlit library, cinematic tracking shot",
+        "seconds": "10",
+        "size": "1280x720",
+    }).encode(),
+    headers={
+        "Authorization": f"Bearer {os.environ['FREEMODEL_API_KEY']}",
+        "Content-Type": "application/json",
+    },
+    method="POST",
+)
+
+with urlopen(request) as response:
+    video = json.load(response)
+
+print(video["id"])
+```
+
+```javascript Node.js
+const response = await fetch("https://api.freemodel.app/v1/videos", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.FREEMODEL_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    model: "gemini-omni-t2v",
+    prompt: "A paper airplane glides through a sunlit library, cinematic tracking shot",
+    seconds: "10",
+    size: "1280x720",
+  }),
+});
+
+const video = await response.json();
+console.log(video.id);
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "id": "task_01HXYZ",
+  "object": "video",
+  "status": "queued",
+  "progress": 0,
+  "model": "gemini-omni-t2v",
+  "created_at": 1784045139,
+  "seconds": "10",
+  "size": "1280x720"
+}
+```
+</ResponseExample>

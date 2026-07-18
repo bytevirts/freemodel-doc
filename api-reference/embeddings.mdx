@@ -1,21 +1,30 @@
 ---
 title: "Embeddings"
 description: "Create vector embeddings with the OpenAI-compatible API."
+api: "POST /v1/embeddings"
 ---
 
-<Info>
-  Base URL: `https://api.freemodel.app/v1`
-</Info>
+Create numerical vector representations for text. Choose an embedding-capable
+model from [`GET /v1/models`](/api-reference/list-models).
 
-Create numerical vector representations for text.
+<ParamField body="model" type="string" required>
+  An embedding model ID returned for your API key.
+</ParamField>
 
-## Create embeddings
+<ParamField body="input" type="string | string[]" required>
+  One text input or an array of text inputs.
+</ParamField>
 
-`POST /embeddings`
+<ParamField body="encoding_format" type="string">
+  Output encoding when supported by the selected model.
+</ParamField>
 
-Choose an embedding-capable model from [`GET /v1/models`](/api-reference/list-models). The example uses `<embedding-model-id>` to avoid assuming model availability for every account.
+<Note>
+  Do not mix vectors from different embedding models in the same similarity index.
+</Note>
 
-```bash
+<RequestExample>
+```bash Curl
 curl https://api.freemodel.app/v1/embeddings \
   -H "Authorization: Bearer sk-xxxx" \
   -H "Content-Type: application/json" \
@@ -24,7 +33,9 @@ curl https://api.freemodel.app/v1/embeddings \
     "input": "FreeModel provides a unified AI API."
   }'
 ```
+</RequestExample>
 
+<ResponseExample>
 ```json Response
 {
   "object": "list",
@@ -42,15 +53,4 @@ curl https://api.freemodel.app/v1/embeddings \
   }
 }
 ```
-
-## Request body
-
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `model` | string | Yes | An embedding model ID returned for your API key. |
-| `input` | string or array | Yes | One text input or an array of text inputs. |
-| `encoding_format` | string | No | Output encoding when supported by the selected model. |
-
-<Note>
-  Do not mix vectors from different embedding models in the same similarity index.
-</Note>
+</ResponseExample>

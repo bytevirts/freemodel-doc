@@ -1,16 +1,68 @@
 ---
 title: "Get task status"
 description: "One endpoint to check any asynchronous generation task by its ID."
+api: "GET /v1/tasks/{id}"
 ---
-
-<Info>
-  `GET https://api.freemodel.app/v1/tasks/{id}`
-</Info>
 
 Query any asynchronous task (video generation today) with the task ID returned
 when you submitted it.
 
-<CodeGroup>
+<ParamField path="id" type="string" required>
+  The task ID returned when you submitted the request, for example
+  `task_01HXYZ`.
+</ParamField>
+
+## Response fields
+
+<ResponseField name="id" type="string">
+  The task ID you submitted.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  `queued`, `in_progress`, `completed`, or `failed`.
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  The model that ran the task.
+</ResponseField>
+
+<ResponseField name="progress" type="number">
+  0–100.
+</ResponseField>
+
+<ResponseField name="created" type="number">
+  Unix timestamp (seconds) of submission.
+</ResponseField>
+
+<ResponseField name="completed" type="number | null">
+  Unix timestamp (seconds) of completion. `null` while running.
+</ResponseField>
+
+<ResponseField name="cost" type="number">
+  Amount billed in USD. Failed tasks are automatically refunded.
+</ResponseField>
+
+<ResponseField name="result" type="object | null">
+  Present when `status` is `completed`. `result.videos[].url` is an array of
+  direct download URLs (some models return more than one file);
+  `result.videos[].expires_at` is the Unix timestamp when the URLs stop
+  working.
+</ResponseField>
+
+<ResponseField name="error" type="object | null">
+  `error.message` holds the failure reason when `status` is `failed`.
+</ResponseField>
+
+<Warning>
+  Result URLs expire (media is retained for 14 days — see `expires_at`).
+  Download the files to your own storage promptly.
+</Warning>
+
+Poll every 10 to 20 seconds, or skip polling entirely with a
+[webhook](/api-reference/webhooks) — the webhook payload is exactly this
+response object.
+
+<RequestExample>
 ```bash Curl
 curl https://api.freemodel.app/v1/tasks/task_01HXYZ \
   -H "Authorization: Bearer $FREEMODEL_API_KEY"
@@ -40,9 +92,9 @@ const response = await fetch(
 const task = await response.json();
 console.log(task.status, task.result);
 ```
-</CodeGroup>
+</RequestExample>
 
-<CodeGroup>
+<ResponseExample>
 ```json Completed
 {
   "id": "task_01HXYZ",
@@ -94,27 +146,4 @@ console.log(task.status, task.result);
   "error": null
 }
 ```
-</CodeGroup>
-
-## Response fields
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `id` | string | The task ID you submitted. |
-| `status` | string | `queued`, `in_progress`, `completed`, or `failed`. |
-| `model` | string | The model that ran the task. |
-| `progress` | number | 0–100. |
-| `created` / `completed` | number | Unix timestamps (seconds). `completed` is `null` while running. |
-| `cost` | number | Amount billed in USD. Failed tasks are automatically refunded. |
-| `result.videos[].url` | string[] | Direct download URLs. Some models return more than one file. |
-| `result.videos[].expires_at` | number | Unix timestamp when the URLs stop working. Download and store the files before then. |
-| `error.message` | string | Failure reason when `status` is `failed`. |
-
-<Warning>
-  Result URLs expire (media is retained for 14 days — see `expires_at`).
-  Download the files to your own storage promptly.
-</Warning>
-
-Poll every 10 to 20 seconds, or skip polling entirely with a
-[webhook](/api-reference/webhooks) — the webhook payload is exactly this
-response object.
+</ResponseExample>
