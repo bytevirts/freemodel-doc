@@ -40,7 +40,8 @@
               "rate-limits",
               "billing",
               "models/gpt-image-2-all",
-              "models/seedance-2"
+              "models/seedance-2",
+              "models/veo-3-1"
             ]
           }
         ]

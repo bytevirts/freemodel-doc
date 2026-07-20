@@ -1,0 +1,76 @@
+---
+title: "Veo 3.1"
+description: "Generate fixed 8-second 1080p or 4K videos with native synchronized audio."
+---
+
+Veo 3.1 is available through the OpenAI-compatible Videos API. All seven routes generate a fixed **8-second** clip with native synchronized audio. Use `16:9` for landscape or `9:16` for portrait.
+
+| Model ID                 | Resolution | Reference images | Price  | Credits |
+| ------------------------ | ---------- | ---------------- | -----: | ------: |
+| `veo3-1-lite`            | 1080p      | Optional, 1-2    |  $0.10 |      10 |
+| `veo3-1-lite-4k`         | 4K         | Optional, 1-2    |  $0.15 |      15 |
+| `veo3-1-fast`            | 1080p      | Optional, 1-2    |  $0.25 |      25 |
+| `veo3-1-fast-4k`         | 4K         | Optional, 1-2    |  $0.45 |      45 |
+| `veo3-1-fast-ref`        | 1080p      | Required, 1-3    |  $0.25 |      25 |
+| `veo3-1-quality`         | 1080p      | Optional, 1-2    |  $1.20 |     120 |
+| `veo3-1-quality-4k`      | 4K         | Optional, 1-2    |  $1.50 |     150 |
+
+<Card
+  title="Open Veo 3.1 Playground"
+  icon="play"
+  href="https://freemodel.app/models/veo3-1"
+>
+  Choose any Veo 3.1 route, set the aspect ratio, and optionally add public
+  start and end frame URLs.
+</Card>
+
+## Generate from text
+
+```bash
+curl https://api.freemodel.app/v1/videos \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "veo3-1-lite-4k",
+    "prompt": "A coastal train crosses a stone bridge at sunrise, synchronized waves and rail sound",
+    "seconds": "8",
+    "aspect_ratio": "16:9"
+  }'
+```
+
+## Guide the start and end frames
+
+Add one or two public `image_urls` to the Lite, Fast, or Quality routes. The first URL is the start frame. When you provide two URLs, the second is the end frame.
+
+```bash
+curl https://api.freemodel.app/v1/videos \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "veo3-1-fast",
+    "prompt": "Move smoothly from the supplied opening frame to the closing frame",
+    "seconds": "8",
+    "aspect_ratio": "16:9",
+    "image_urls": [
+      "https://example.com/start.jpg",
+      "https://example.com/end.jpg"
+    ]
+  }'
+```
+
+`veo3-1-fast-ref` is different: it requires one to three public image URLs. Use it when visual references are the primary source of identity or style guidance.
+
+## Poll and download
+
+Save the returned `id`. Include the same model ID while polling and downloading:
+
+```bash
+curl "https://api.freemodel.app/v1/videos/$VIDEO_ID?model=veo3-1-lite-4k" \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY"
+
+curl -L "https://api.freemodel.app/v1/videos/$VIDEO_ID/content?model=veo3-1-lite-4k" \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  --output video.mp4
+```
+
+See [Video generation](/api-reference/video-generation) for the full asynchronous workflow and response shapes.
