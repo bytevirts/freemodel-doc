@@ -53,8 +53,6 @@
             "group": "Image Series",
             "icon": "image",
             "pages": [
-              "api-manual/image/gpt-image-1",
-              "api-manual/image/gpt-image-1-5",
               "api-manual/image/gpt-image-2",
               "api-manual/image/gpt-image-2-all"
             ]
