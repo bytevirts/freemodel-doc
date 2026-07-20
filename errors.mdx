@@ -28,7 +28,7 @@ Use the HTTP status code together with `error.type` and `error.code` to decide h
 
 ## Video request error
 
-A video request with a duration unsupported by the selected model can return a `400` `invalid_request` error. Gemini Omni models require `"10"`; Seedance 2 models require `"15"`.
+A video request with a duration unsupported by the selected model can return a `400` `invalid_request` error. Gemini Omni models require `"10"`; Seedance 2 models accept `"5"`, `"10"`, or `"15"`.
 
 ```bash
 curl https://api.freemodel.app/v1/videos \

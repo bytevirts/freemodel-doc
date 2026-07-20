@@ -8,14 +8,14 @@ Video generation is asynchronous. Submit a request, save the returned `id`, poll
 
 ## Available models
 
-| Model                | Input mode                        |   Duration |             Price |
-| -------------------- | --------------------------------- | ---------: | ----------------: |
-| `gemini-omni-t2v`    | Text prompt                       | 10 seconds | $0.25 per request |
-| `gemini-omni-i2v`    | Prompt + source image URLs        | 10 seconds | $0.25 per request |
-| `gemini-omni-r2v`    | Prompt + reference image URLs     | 10 seconds | $0.25 per request |
-| `gemini-omni-extend` | Prompt + image URLs for extension | 10 seconds | $0.25 per request |
-| `video-ds-2.0`       | Text prompt                       | 15 seconds | $0.99 per request |
-| `video-ds-2.0-fast`  | Text prompt                       | 15 seconds | $0.79 per request |
+| Model                | Input mode                        |             Duration |             Price |
+| -------------------- | --------------------------------- | -------------------: | ----------------: |
+| `gemini-omni-t2v`    | Text prompt                       |           10 seconds | $0.25 per request |
+| `gemini-omni-i2v`    | Prompt + source image URLs        |           10 seconds | $0.25 per request |
+| `gemini-omni-r2v`    | Prompt + reference image URLs     |           10 seconds | $0.25 per request |
+| `gemini-omni-extend` | Prompt + image URLs for extension |           10 seconds | $0.25 per request |
+| `video-ds-2.0`       | Text prompt                       | 5, 10, or 15 seconds |     $1, $2, or $3 |
+| `video-ds-2.0-fast`  | Text prompt                       | 5, 10, or 15 seconds |     $1, $2, or $3 |
 
 The [models page](https://freemodel.app/models) is the source of truth for current availability and rates.
 
@@ -28,8 +28,8 @@ The [models page](https://freemodel.app/models) is the source of truth for curre
 </ParamField>
 
 <ParamField body="seconds" type="string" required>
-  Use `"10"` for Gemini Omni or `"15"` for Seedance 2. Other durations are not
-  available for these routes.
+  Use `"10"` for Gemini Omni. Seedance 2 accepts `"5"`, `"10"`, or `"15"`; these
+  cost $1, $2, and $3 respectively (100, 200, and 300 credits).
 </ParamField>
 
 <ParamField body="size" type="string">
@@ -37,7 +37,8 @@ The [models page](https://freemodel.app/models) is the source of truth for curre
 </ParamField>
 
 <ParamField body="aspect_ratio" type="string">
-  Seedance 2 only. Use `16:9`, `9:16`, or `1:1`.
+  Seedance 2 only. Use `16:9`, `9:16`, or `1:1`. Do not send `size` for
+  Seedance. Output is 720p; a completed 16:9 result was verified at 1280×720.
 </ParamField>
 
 <ParamField body="image_urls" type="string[]">
@@ -56,7 +57,7 @@ curl https://api.freemodel.app/v1/videos \
   -d '{
     "model": "video-ds-2.0-fast",
     "prompt": "A paper sculpture unfolds into a city skyline, locked camera, clean studio light",
-    "seconds": "15",
+    "seconds": "5",
     "aspect_ratio": "16:9"
   }'
 ```
@@ -83,7 +84,7 @@ request = Request(
     data=json.dumps({
         "model": "video-ds-2.0-fast",
         "prompt": "A paper sculpture unfolds into a city skyline",
-        "seconds": "15",
+        "seconds": "5",
         "aspect_ratio": "16:9",
     }).encode(),
     headers={
@@ -109,7 +110,7 @@ const response = await fetch("https://api.freemodel.app/v1/videos", {
   body: JSON.stringify({
     model: "video-ds-2.0-fast",
     prompt: "A paper sculpture unfolds into a city skyline",
-    seconds: "15",
+    seconds: "5",
     aspect_ratio: "16:9",
   }),
 });
@@ -130,7 +131,7 @@ console.log(video.id);
   "progress": 0,
   "model": "video-ds-2.0-fast",
   "created_at": 1784045139,
-  "seconds": "15"
+  "seconds": "5"
 }
 ```
 </ResponseExample>
@@ -138,9 +139,11 @@ console.log(video.id);
 ## Poll video status
 
 Poll every 10 to 20 seconds while the status is `queued` or `in_progress`.
+Pass the same model ID in the `model` query parameter when polling and
+downloading a video task.
 
 ```bash
-curl https://api.freemodel.app/v1/videos/task_01HXYZ \
+curl "https://api.freemodel.app/v1/videos/task_01HXYZ?model=video-ds-2.0-fast" \
   -H "Authorization: Bearer $FREEMODEL_API_KEY"
 ```
 
@@ -157,7 +160,7 @@ Only download content after the task status is `completed`.
 
 <CodeGroup>
 ```bash Curl
-curl https://api.freemodel.app/v1/videos/task_01HXYZ/content \
+curl "https://api.freemodel.app/v1/videos/task_01HXYZ/content?model=video-ds-2.0-fast" \
   -H "Authorization: Bearer $FREEMODEL_API_KEY" \
   -o video.mp4
 ```
@@ -168,7 +171,7 @@ from urllib.request import Request, urlopen
 
 video_id = "task_01HXYZ"
 request = Request(
-    f"https://api.freemodel.app/v1/videos/{video_id}/content",
+    f"https://api.freemodel.app/v1/videos/{video_id}/content?model=video-ds-2.0-fast",
     headers={"Authorization": f"Bearer {os.environ['FREEMODEL_API_KEY']}"},
 )
 
@@ -184,7 +187,7 @@ const { pipeline } = require("node:stream/promises");
 
 const videoId = "task_01HXYZ";
 const response = await fetch(
-  `https://api.freemodel.app/v1/videos/${videoId}/content`,
+  `https://api.freemodel.app/v1/videos/${videoId}/content?model=video-ds-2.0-fast`,
   { headers: { Authorization: `Bearer ${process.env.FREEMODEL_API_KEY}` } },
 );
 
@@ -200,7 +203,7 @@ await pipeline(Readable.fromWeb(response.body), createWriteStream("video.mp4"));
 | ---------------------------------------- | ----------------------------------------------------------------------------------------- |
 | The model is unavailable to your key.    | Call [`GET /v1/models`](/api-reference/list-models) and choose a returned video model ID. |
 | The balance is insufficient.             | Add prepaid balance before submitting another request.                                    |
-| The duration is rejected.                | Use `"10"` for Gemini Omni or `"15"` for Seedance 2.                                      |
+| The duration is rejected.                | Use `"10"` for Gemini Omni or `"5"`, `"10"`, or `"15"` for Seedance 2.                    |
 | A Gemini request rejects `aspect_ratio`. | Send `size` instead.                                                                      |
 | A Seedance request rejects `size`.       | Send `aspect_ratio` instead.                                                              |
 
