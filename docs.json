@@ -38,7 +38,9 @@
               "authentication",
               "errors",
               "rate-limits",
-              "billing"
+              "billing",
+              "models/gpt-image-2-all",
+              "models/seedance-2"
             ]
           }
         ]
@@ -50,20 +52,14 @@
             "group": "API Reference",
             "pages": [
               "api-reference/chat-completions",
-              "api-reference/embeddings",
               "api-reference/images",
               "api-reference/video-generation",
-              "api-reference/claude-messages",
-              "api-reference/gemini-generate-content",
               "api-reference/list-models"
             ]
           },
           {
             "group": "Task management",
-            "pages": [
-              "api-reference/task-status",
-              "api-reference/webhooks"
-            ]
+            "pages": ["api-reference/task-status", "api-reference/webhooks"]
           }
         ]
       },
@@ -72,11 +68,7 @@
         "groups": [
           {
             "group": "SDKs",
-            "pages": [
-              "sdks/openai-python",
-              "sdks/openai-node",
-              "sdks/anthropic-sdk"
-            ]
+            "pages": ["sdks/openai-python", "sdks/openai-node"]
           }
         ]
       }

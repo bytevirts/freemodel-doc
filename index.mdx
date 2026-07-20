@@ -3,21 +3,24 @@ title: "Introduction"
 description: "Build with a unified, OpenAI-compatible AI API."
 ---
 
-FreeModel is a unified AI API gateway. Use one API key and a familiar API shape to build with the models available to your account.
+FreeModel is a unified AI API gateway. Use one API key and OpenAI-compatible endpoints to build with the models available to your account.
 
-The primary API is OpenAI-compatible at `https://api.freemodel.app/v1`. Compatibility endpoints for Claude and Gemini are also available when your integration needs them.
+The API base URL is `https://api.freemodel.app/v1`. The live catalog currently includes GPT-5.4+ text models, GPT Image 2 image models, Gemini Omni video, and Seedance 2 video.
 
 ## Start in three steps
 
 <Steps>
   <Step title="Create your account">
-    [Sign up for FreeModel](https://freemodel.app/sign-up) and open the [Console](https://freemodel.app/settings).
+    [Sign up for FreeModel](https://freemodel.app/sign-up) and open the
+    [Console](https://freemodel.app/settings).
   </Step>
   <Step title="Add balance">
-    In the Console, open **Billing** and add prepaid USD balance. FreeModel does not use subscriptions.
+    In the Console, open **Billing** and add prepaid USD balance. FreeModel does
+    not use subscriptions.
   </Step>
   <Step title="Create an API key">
-    In the Console, open **API Keys** and create a key. Send it as `Authorization: Bearer sk-...` with every API request.
+    In the Console, open **API Keys** and create a key. Send it as
+    `Authorization: Bearer sk-...` with every API request.
   </Step>
 </Steps>
 
@@ -25,8 +28,12 @@ The primary API is OpenAI-compatible at `https://api.freemodel.app/v1`. Compatib
   <Card title="Quickstart" icon="rocket" href="/quickstart">
     Make your first chat completion with curl, Python, or Node.js.
   </Card>
-  <Card title="API reference" icon="code" href="/api-reference/chat-completions">
-    Explore OpenAI-compatible and compatibility endpoints.
+  <Card
+    title="API reference"
+    icon="code"
+    href="/api-reference/chat-completions"
+  >
+    Explore the currently documented OpenAI-compatible endpoints.
   </Card>
   <Card title="Models" icon="sparkles" href="https://freemodel.app/models">
     View the current models and prices available on FreeModel.
@@ -35,8 +42,11 @@ The primary API is OpenAI-compatible at `https://api.freemodel.app/v1`. Compatib
 
 ## Choose an API surface
 
-Use the OpenAI-compatible API for new integrations. It supports chat completions, embeddings, images, videos, model discovery, and server-sent event streaming. Use the Claude and Gemini compatibility endpoints when you are migrating an existing integration that expects those request formats.
+Use the OpenAI-compatible API for new integrations. The current catalog supports chat completions, image generation, asynchronous video generation, model discovery, and server-sent event streaming for compatible text models.
 
 <Note>
-  Models and availability can change. Call [`GET /v1/models`](/api-reference/list-models) with your API key to discover models available to you. The [models page](https://freemodel.app/models) is the source of truth for current pricing.
+  Models and availability can change. Call [`GET
+  /v1/models`](/api-reference/list-models) with your API key to discover models
+  available to you. The [models page](https://freemodel.app/models) is the
+  source of truth for current pricing.
 </Note>

@@ -17,18 +17,18 @@ FreeModel returns errors in the OpenAI-compatible envelope.
 
 Use the HTTP status code together with `error.type` and `error.code` to decide how to recover.
 
-| Status | Code or type | Meaning | Fix |
-| --- | --- | --- | --- |
-| 401 | `invalid_token` | The API key is missing, invalid, or revoked. | Check the `Authorization: Bearer sk-...` header. Create a new key if needed. |
-| 400 or 404 | `model_not_found` | The requested model is not available to your key. | Call [`GET /v1/models`](/api-reference/list-models) and use a returned ID. |
-| 400 | `invalid_request` | A video request has a `seconds` value other than `"10"`. | Set `seconds` to the string `"10"`. |
-| 402 | `insufficient_user_quota` | Your prepaid balance is empty or insufficient. | Add balance in the Console under **Billing**. |
-| 429 | Rate limit error | Too many requests were sent in a short period. | Back off and retry with exponential delay. |
-| 500-599 | Server error | FreeModel or an upstream provider could not complete the request. | Retry transient failures with backoff. |
+| Status     | Code or type              | Meaning                                                                               | Fix                                                                                   |
+| ---------- | ------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| 401        | `invalid_token`           | The API key is missing, invalid, or revoked.                                          | Check the `Authorization: Bearer sk-...` header. Create a new key if needed.          |
+| 400 or 404 | `model_not_found`         | The requested model is not available to your key.                                     | Call [`GET /v1/models`](/api-reference/list-models) and use a returned ID.            |
+| 400        | `invalid_request`         | A video request has a duration or aspect parameter unsupported by the selected model. | Use the model-specific values in [Video generation](/api-reference/video-generation). |
+| 402        | `insufficient_user_quota` | Your prepaid balance is empty or insufficient.                                        | Add balance in the Console under **Billing**.                                         |
+| 429        | Rate limit error          | Too many requests were sent in a short period.                                        | Back off and retry with exponential delay.                                            |
+| 500-599    | Server error              | FreeModel or an upstream provider could not complete the request.                     | Retry transient failures with backoff.                                                |
 
 ## Video request error
 
-A video request with a `seconds` value other than the string `"10"` returns a `400` `invalid_request` error. Videos are fixed at 10 seconds.
+A video request with a duration unsupported by the selected model can return a `400` `invalid_request` error. Gemini Omni models require `"10"`; Seedance 2 models require `"15"`.
 
 ```bash
 curl https://api.freemodel.app/v1/videos \
@@ -41,12 +41,13 @@ curl https://api.freemodel.app/v1/videos \
   }'
 ```
 
-The response has `error.type` and `error.code` set to `invalid_request`. Set `seconds` to `"10"` and submit the request again.
+The response has `error.type` and `error.code` set to `invalid_request`. Set the duration required by your selected model and submit the request again.
 
 ## Retry safely
 
 Retry only errors that can be temporary, such as `429` and `5xx` responses. Do not retry an invalid key, an unavailable model, or an empty balance without changing the request or account state.
 
 <Tip>
-  Log the HTTP status, request ID when present, and the complete `error` object. Do not log API keys or sensitive prompt content.
+  Log the HTTP status, request ID when present, and the complete `error` object.
+  Do not log API keys or sensitive prompt content.
 </Tip>

@@ -1,0 +1,40 @@
+---
+title: "GPT Image 2 All"
+description: "Generate 1K images through the gpt-image-2-all route."
+---
+
+`gpt-image-2-all` is available through the OpenAI-compatible image generations endpoint. A generation costs **$0.02 per image** and returns one 1K image as base64.
+
+| Property | Value                                 |
+| -------- | ------------------------------------- |
+| Model ID | `gpt-image-2-all`                     |
+| Endpoint | `POST /v1/images/generations`         |
+| Price    | $0.02 per image                       |
+| Response | `data[0].b64_json`                    |
+| Sizes    | `1024x1024`, `1536x1024`, `1024x1536` |
+
+<Card
+  title="Open GPT Image 2 All Playground"
+  icon="wand-magic-sparkles"
+  href="https://freemodel.app/models/gpt-image-2-all"
+>
+  Run a generation with your FreeModel balance and inspect the live price.
+</Card>
+
+## Generate an image
+
+```bash
+curl https://api.freemodel.app/v1/images/generations \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-image-2-all",
+    "prompt": "A precise editorial photograph of a translucent mechanical keyboard on a white desk",
+    "size": "1536x1024",
+    "n": 1
+  }' \
+  | jq -r '.data[0].b64_json' \
+  | base64 --decode > image.png
+```
+
+See [Images](/api-reference/images) for Python and Node.js examples and the complete response shape.

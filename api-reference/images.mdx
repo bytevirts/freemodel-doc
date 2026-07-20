@@ -9,7 +9,7 @@ Generate one image from a text prompt. Image generation is synchronous and usual
 The response contains the generated image as base64 in `data[0].b64_json`. Decode it and write the bytes to an image file. On macOS, replace `base64 --decode` in the curl example with `base64 -D`.
 
 <ParamField body="model" type="string" required>
-  Use `gpt-image-2`.
+  Use `gpt-image-2` or `gpt-image-2-all`.
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
@@ -17,18 +17,23 @@ The response contains the generated image as base64 in `data[0].b64_json`. Decod
 </ParamField>
 
 <ParamField body="size" type="string">
-  `1024x1024` creates a 1:1 image. `1536x1024` creates a 3:2 image.
-  `1024x1536` creates a 2:3 image. Omit this field, or use another value, to
-  use the automatic aspect ratio.
+  `1024x1024` creates a 1:1 image. `1536x1024` creates a 3:2 image. `1024x1536`
+  creates a 2:3 image. Omit this field, or use another value, to use the
+  automatic aspect ratio.
 </ParamField>
 
 <ParamField body="n" type="integer">
   Omit this field or set it to `1`. Multiple images are not supported.
 </ParamField>
 
-<Note>
-  Output quality is fixed at 1K in v1. Each image costs $0.01. See the [models page](https://freemodel.app/models) for current rates.
-</Note>
+Output quality is fixed at 1K in v1.
+
+| Model             |           Price |
+| ----------------- | --------------: |
+| `gpt-image-2`     | $0.01 per image |
+| `gpt-image-2-all` | $0.02 per image |
+
+See the [live models page](https://freemodel.app/models) before shipping a hardcoded price.
 
 <RequestExample>
 ```bash Curl
@@ -97,11 +102,15 @@ async function main() {
   }
 
   const payload = await response.json();
-  await fs.writeFile("image.png", Buffer.from(payload.data[0].b64_json, "base64"));
+  await fs.writeFile(
+    "image.png",
+    Buffer.from(payload.data[0].b64_json, "base64"),
+  );
 }
 
 main();
 ```
+
 </RequestExample>
 
 <ResponseExample>

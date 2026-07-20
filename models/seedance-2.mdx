@@ -1,0 +1,37 @@
+---
+title: "Seedance 2"
+description: "Generate fixed 15-second videos with the standard or Fast Seedance 2 route."
+---
+
+Seedance 2 is available through the OpenAI-compatible Videos API. Both routes generate a fixed **15-second** clip and support landscape, portrait, and square output.
+
+| Model ID            |             Price |   Duration |
+| ------------------- | ----------------: | ---------: |
+| `video-ds-2.0`      | $0.99 per request | 15 seconds |
+| `video-ds-2.0-fast` | $0.79 per request | 15 seconds |
+
+<Card
+  title="Open Seedance 2 Playground"
+  icon="play"
+  href="https://freemodel.app/models/seedance-2"
+>
+  Choose a route and aspect ratio, then generate with your FreeModel balance.
+</Card>
+
+## Submit a Fast request
+
+```bash
+curl https://api.freemodel.app/v1/videos \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "video-ds-2.0-fast",
+    "prompt": "A paper sculpture unfolding into a city skyline, locked camera, clean studio light",
+    "seconds": "15",
+    "aspect_ratio": "16:9"
+  }'
+```
+
+Save the returned `id`, poll `GET /v1/videos/{id}`, and download the completed MP4 from `GET /v1/videos/{id}/content`.
+
+See [Video generation](/api-reference/video-generation) for the full asynchronous workflow.
