@@ -1,0 +1,66 @@
+---
+title: "Cursor"
+description: "Use FreeModel text models through Cursor's OpenAI API key settings."
+---
+
+Cursor includes an OpenAI API key section with an **Override OpenAI Base URL** option. Point that option to FreeModel and add the exact model ID you want to use.
+
+## Configure Cursor
+
+<Steps>
+  <Step title="Open model settings">
+    Open **Cursor Settings > Models** and expand the API key settings.
+  </Step>
+  <Step title="Add the API key">
+    Enable **OpenAI API Key**, enter your FreeModel key, and keep it in Cursor's
+    credential store.
+  </Step>
+  <Step title="Override the base URL">
+    Enable **Override OpenAI Base URL** and enter
+    `https://api.freemodel.app/v1`.
+  </Step>
+  <Step title="Add a model">
+    Under **Models**, choose **Add model** and enter an exact ID such as
+    `gpt-5.4-mini`, `gpt-5.5`, or `gpt-5.6-sol`.
+  </Step>
+  <Step title="Verify">
+    Select the custom model in chat and send a short prompt. Review usage in the
+    FreeModel Console.
+  </Step>
+</Steps>
+
+## Recommended starting models
+
+| Model | Input / output per 1M tokens | Use when |
+| --- | --- | --- |
+| `gpt-5.4-mini` | $0.25 / $1.50 | You want the lowest-cost development loop |
+| `gpt-5.5` | $1.25 / $10.00 | You want a higher-priced coding route |
+| `gpt-5.6-sol` | $1.75 / $14.00 | You are evaluating the GPT-5.6 Sol route |
+
+<Note>
+  Cursor controls which features are available with custom API keys. Chat can
+  work while some hosted Cursor features still use Cursor-managed models or are
+  unavailable for a custom route.
+</Note>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The model does not appear">
+    Add the ID manually under **Models** and enable it. Cursor does not always
+    import a third-party gateway's model list automatically.
+  </Accordion>
+  <Accordion title="Cursor reports model not found">
+    Check spelling and call [`GET /v1/models`](/api-reference/list-models) with
+    the same key. Model IDs are case-sensitive.
+  </Accordion>
+  <Accordion title="Cursor keeps calling OpenAI">
+    Confirm **Override OpenAI Base URL** is enabled and contains the full
+    `https://api.freemodel.app/v1` value.
+  </Accordion>
+  <Accordion title="Agent tools behave differently">
+    Custom models can differ in tool-calling behavior. Test file edits and
+    terminal tool calls in a disposable branch before making the model a team
+    default.
+  </Accordion>
+</AccordionGroup>

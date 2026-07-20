@@ -1,0 +1,86 @@
+---
+title: "Build a reliable video workflow"
+description: "Submit, persist, poll, download, and reconcile asynchronous video tasks."
+---
+
+Video generation can take several minutes and must not depend on one long-lived HTTP request. Treat each submission as a durable task.
+
+## 1. Validate before submitting
+
+Use the selected model page to validate duration, framing, and reference rules in your own application.
+
+| Family | Duration | Framing field |
+| --- | --- | --- |
+| Gemini Omni | Fixed 10 seconds | `size` |
+| Seedance 2 | 5, 10, or 15 seconds | `aspect_ratio` |
+| Veo 3.1 | Fixed 8 seconds | `aspect_ratio` |
+
+Do not submit `familySlug`. It is not part of the public API.
+
+## 2. Persist the returned task
+
+After `POST /v1/videos`, store at least:
+
+- `id`
+- `model`
+- current `status`
+- the user or job that owns the task
+- submission time
+
+You need the exact model ID in the poll and download query parameter.
+
+## 3. Poll with backoff
+
+Poll every 10 to 20 seconds while a task is `queued` or `in_progress`. Stop on `completed` or `failed`.
+
+```javascript
+async function waitForVideo(id, model) {
+  const url = new URL(`https://api.freemodel.app/v1/videos/${id}`);
+  url.searchParams.set("model", model);
+
+  for (let attempt = 0; attempt < 120; attempt += 1) {
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${process.env.FREEMODEL_API_KEY}` },
+    });
+    if (!response.ok) throw new Error(await response.text());
+
+    const task = await response.json();
+    if (task.status === "completed") return task;
+    if (task.status === "failed") throw new Error(task.error?.message || "Video failed");
+
+    await new Promise((resolve) => setTimeout(resolve, 15_000));
+  }
+
+  throw new Error("Video task did not finish before the client deadline");
+}
+```
+
+## 4. Download promptly
+
+Stream the completed MP4 to storage instead of buffering the entire file in memory.
+
+```bash
+curl -L "https://api.freemodel.app/v1/videos/$VIDEO_ID/content?model=$MODEL" \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  --output video.mp4
+```
+
+## 5. Prefer webhooks at scale
+
+Pass `webhook` and an optional `webhook_secret` when submitting. Acknowledge deliveries with `2xx`, process asynchronously, and deduplicate on task ID plus status.
+
+<CardGroup cols={2}>
+  <Card title="Webhook contract" icon="webhook" href="/api-reference/webhooks">
+    Verify signatures, retries, and final-state payloads.
+  </Card>
+  <Card title="Task status" icon="list-check" href="/api-reference/task-status">
+    Use the normalized task API for reconciliation.
+  </Card>
+</CardGroup>
+
+## Failure rules
+
+- Retry `429` and temporary `5xx` responses with exponential backoff and jitter.
+- Do not retry invalid duration, aspect ratio, model ID, key, or balance without changing the request.
+- Treat webhooks as notifications. Re-fetch critical results before committing downstream state.
+- Download completed media to your own storage before its result URL expires.

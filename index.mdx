@@ -1,52 +1,75 @@
 ---
-title: "Introduction"
-description: "Build with a unified, OpenAI-compatible AI API."
+title: "FreeModel API"
+sidebarTitle: "FreeModel API overview"
+description: "Use one API key for GPT text, image generation, and asynchronous video generation."
 ---
 
-FreeModel is a unified AI API gateway. Use one API key and OpenAI-compatible endpoints to build with the models available to your account.
+FreeModel is a prepaid AI gateway with OpenAI-compatible, Anthropic-compatible, and Gemini-compatible text protocols plus image and video generation APIs.
 
-The API base URL is `https://api.freemodel.app/v1`. The live catalog currently includes GPT-5.4+ text models, GPT Image 2 image models, Gemini Omni video, Seedance 2 video, and seven Veo 3.1 video routes.
+Change your base URL to `https://api.freemodel.app/v1`, keep your API key on the server, and select a model ID from the live catalog.
 
-## Start in three steps
+## Quick start
 
 <Steps>
-  <Step title="Create your account">
-    [Sign up for FreeModel](https://freemodel.app/sign-up) and open the
-    [Console](https://freemodel.app/settings).
-  </Step>
-  <Step title="Add balance">
-    In the Console, open **Billing** and add prepaid USD balance. FreeModel does
-    not use subscriptions.
-  </Step>
   <Step title="Create an API key">
-    In the Console, open **API Keys** and create a key. Send it as
-    `Authorization: Bearer sk-...` with every API request.
+    [Create an account](https://freemodel.app/sign-up), add balance, then create
+    a key under **Console > API Keys**.
+  </Step>
+  <Step title="Choose a model">
+    Call [`GET /v1/models`](/api-reference/list-models) or browse the model
+    pages in the sidebar. Model availability is scoped to your key.
+  </Step>
+  <Step title="Send a request">
+    Send the key as `Authorization: Bearer sk-...` and use the endpoint for the
+    selected modality.
   </Step>
 </Steps>
 
-<CardGroup cols={3}>
-  <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Make your first chat completion with curl, Python, or Node.js.
+```bash
+curl https://api.freemodel.app/v1/chat/completions \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-5.4-mini",
+    "messages": [{"role": "user", "content": "Reply with one sentence."}]
+  }'
+```
+
+## API surfaces
+
+<CardGroup cols={2}>
+  <Card title="Text Series" icon="font" href="/api-manual/text/gpt-5-4">
+    Use Chat Completions, Responses, Anthropic Messages, or Gemini native
+    requests with the current GPT-5.4+ catalog.
   </Card>
-  <Card
-    title="API reference"
-    icon="code"
-    href="/api-reference/chat-completions"
-  >
-    Explore the currently documented OpenAI-compatible endpoints.
+  <Card title="Image Series" icon="image" href="/api-manual/image/gpt-image-1">
+    Generate images through the OpenAI-compatible image endpoint.
   </Card>
-  <Card title="Models" icon="sparkles" href="https://freemodel.app/models">
-    View the current models and prices available on FreeModel.
+  <Card title="Video Series" icon="video" href="/api-manual/video/gemini-omni-t2v">
+    Submit Gemini Omni, Seedance 2, or Veo 3.1 tasks, then poll and download.
+  </Card>
+  <Card title="Development tools" icon="code" href="/integrations">
+    Configure Claude Code, Cursor, Cline, Gemini CLI, or Codex CLI.
   </Card>
 </CardGroup>
 
-## Choose an API surface
+## Compatible text protocols
 
-Use the OpenAI-compatible API for new integrations. The current catalog supports chat completions, image generation, asynchronous video generation, model discovery, and server-sent event streaming for compatible text models.
+| Protocol | Endpoint | Typical use |
+| --- | --- | --- |
+| OpenAI Chat Completions | `POST /v1/chat/completions` | OpenAI SDKs, Cursor, Cline |
+| OpenAI Responses | `POST /v1/responses` | Codex CLI and Responses clients |
+| Anthropic Messages | `POST /v1/messages` | Claude Code gateway mode |
+| Gemini native | `POST /v1beta/models/{model}:generateContent` | Gemini CLI and Google Gen AI clients |
+
+All four text protocols were verified against the live gateway. The gateway converts compatible requests to the selected model's serving protocol.
+
+## Billing and availability
+
+FreeModel uses prepaid USD balance with no subscription. Text and GPT Image 1 routes are token-billed. GPT Image 2 and video routes use fixed or duration-based request prices.
 
 <Note>
-  Models and availability can change. Call [`GET
-  /v1/models`](/api-reference/list-models) with your API key to discover models
-  available to you. The [models page](https://freemodel.app/models) is the
-  source of truth for current pricing.
+  The [live models page](https://freemodel.app/models) is the source of truth for
+  current availability and pricing. Call [`GET /v1/models`](/api-reference/list-models)
+  before hardcoding a model ID.
 </Note>

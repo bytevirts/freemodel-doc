@@ -1,0 +1,46 @@
+---
+title: "Veo 3.1 Fast"
+description: "Generate an 8-second 1080p Veo 3.1 Fast video for $0.25."
+api: "POST /v1/videos"
+---
+
+`veo3-1-fast` is the 1080p Fast route for fixed 8-second video with synchronized native audio.
+
+| Property | Value |
+| --- | --- |
+| Model ID | `veo3-1-fast` |
+| Duration | Fixed 8 seconds |
+| Resolution | 1920x1080 or 1080x1920 |
+| References | Optional, 1-2 public images |
+| Price | $0.25 per request (25 credits) |
+
+<ParamField body="model" type="string" required>Set to `veo3-1-fast`.</ParamField>
+<ParamField body="prompt" type="string" required>Describe the shot and intended audio.</ParamField>
+<ParamField body="seconds" type="string" required>Set to `"8"`.</ParamField>
+<ParamField body="aspect_ratio" type="string" default="16:9">Use `16:9` or `9:16`.</ParamField>
+<ParamField body="image_urls" type="string[]">Optionally send one start frame or a start and end frame.</ParamField>
+
+## Request with start and end frames
+
+```bash
+curl https://api.freemodel.app/v1/videos \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "veo3-1-fast",
+    "prompt": "Move smoothly from the supplied opening frame to the closing frame",
+    "seconds": "8",
+    "aspect_ratio": "16:9",
+    "image_urls": [
+      "https://example.com/start.jpg",
+      "https://example.com/end.jpg"
+    ]
+  }'
+```
+
+Follow the [Video API workflow](/api-reference/video-generation) and include `model=veo3-1-fast` when polling and downloading.
+
+<Tip>
+  With two images, the first URL is the start frame and the second is the end
+  frame. Use Fast Reference when you need up to three general references.
+</Tip>

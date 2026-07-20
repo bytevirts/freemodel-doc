@@ -1,0 +1,60 @@
+---
+title: "Gemini Omni R2V"
+description: "Generate a reference-guided 10-second Gemini Omni video."
+api: "POST /v1/videos"
+---
+
+`gemini-omni-r2v` uses one to five reference images to guide identity, objects, composition, or style across a 10-second result.
+
+| Property | Value |
+| --- | --- |
+| Model ID | `gemini-omni-r2v` |
+| Input | Prompt + 1-5 reference images |
+| Output | 720p or 1080p, native audio |
+| Price | $0.25 per request (25 credits) |
+
+<ParamField body="model" type="string" required>
+  Set to `gemini-omni-r2v`.
+</ParamField>
+
+<ParamField body="prompt" type="string" required>
+  Refer to the supplied visual material clearly and describe the intended shot.
+</ParamField>
+
+<ParamField body="seconds" type="string" required>
+  Set to `"10"`.
+</ParamField>
+
+<ParamField body="size" type="string" default="1280x720">
+  Use a landscape, portrait, or square pixel size. The gateway selects the
+  matching 720p or 1080p output tier.
+</ParamField>
+
+<ParamField body="image_urls" type="string[]" required>
+  One to five publicly reachable reference-image URLs.
+</ParamField>
+
+## Request
+
+```bash
+curl https://api.freemodel.app/v1/videos \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-omni-r2v",
+    "prompt": "Use the supplied product and color language in a slow studio orbit",
+    "seconds": "10",
+    "size": "1024x1024",
+    "image_urls": [
+      "https://example.com/product.jpg",
+      "https://example.com/style.jpg"
+    ]
+  }'
+```
+
+The response returns a queued task `id`. Follow the [Video API workflow](/api-reference/video-generation) to poll and download.
+
+<Tip>
+  Use I2V when one image is the opening source frame. Use R2V when the images
+  are visual guidance rather than a strict first frame.
+</Tip>

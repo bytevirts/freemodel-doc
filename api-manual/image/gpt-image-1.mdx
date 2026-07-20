@@ -1,0 +1,56 @@
+---
+title: "GPT Image 1"
+description: "Generate images with the token-billed gpt-image-1 route."
+api: "POST /v1/images/generations"
+---
+
+`gpt-image-1` is an OpenAI Images-compatible, token-billed image route. Start with the minimal request below and set a client timeout of at least 120 seconds.
+
+| Property | Value |
+| --- | --- |
+| Model ID | `gpt-image-1` |
+| Input price | $5.00 per 1M tokens |
+| Output price | $40.00 per 1M tokens |
+| Response | `data[0].b64_json` |
+
+<ParamField body="model" type="string" required>
+  Set to `gpt-image-1`.
+</ParamField>
+
+<ParamField body="prompt" type="string" required>
+  Describe the desired subject, composition, lighting, and style.
+</ParamField>
+
+<ParamField body="size" type="string">
+  Use `1024x1024`, `1536x1024`, or `1024x1536`. Omit the field for automatic
+  framing.
+</ParamField>
+
+<ParamField body="n" type="integer" default="1">
+  Set to `1`.
+</ParamField>
+
+## Request
+
+```bash
+curl https://api.freemodel.app/v1/images/generations \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-image-1",
+    "prompt": "A clean editorial photograph of a glass radio on a white desk",
+    "size": "1536x1024",
+    "n": 1
+  }' \
+  | jq -r '.data[0].b64_json' \
+  | base64 --decode > image.png
+```
+
+## Billing
+
+This route is not priced as a fixed amount per image. FreeModel meters input and generated image output tokens, then applies the rates above. Inspect request usage in the Console for the cost of your prompt and output.
+
+<Note>
+  Keep image requests server-side. The response can be large because it contains
+  base64-encoded image bytes.
+</Note>

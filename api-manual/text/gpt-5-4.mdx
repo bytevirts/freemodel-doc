@@ -1,0 +1,54 @@
+---
+title: "GPT-5.4"
+description: "Call the gpt-5.4 text model through FreeModel-compatible text protocols."
+api: "POST /v1/chat/completions"
+---
+
+Use `gpt-5.4` for OpenAI-compatible chat and streaming workloads. The same model ID also works with FreeModel's Responses, Anthropic Messages, and Gemini native compatibility routes.
+
+| Property | Value |
+| --- | --- |
+| Model ID | `gpt-5.4` |
+| Input price | $1.25 per 1M tokens |
+| Output price | $7.50 per 1M tokens |
+| Streaming | Supported with `stream: true` |
+
+<ParamField body="model" type="string" required>
+  Set to `gpt-5.4`.
+</ParamField>
+
+<ParamField body="messages" type="array" required>
+  Ordered system, user, and assistant messages.
+</ParamField>
+
+<ParamField body="stream" type="boolean" default="false">
+  Set to `true` to receive server-sent events.
+</ParamField>
+
+## Request
+
+```bash
+curl https://api.freemodel.app/v1/chat/completions \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-5.4",
+    "messages": [{"role": "user", "content": "Summarize this design decision in three bullets."}]
+  }'
+```
+
+Read generated text from `choices[0].message.content`. See [Chat Completions protocol](/api-reference/chat-completions) for streaming and response fields.
+
+## Compatible protocol paths
+
+| Format | Path |
+| --- | --- |
+| Chat Completions | `/v1/chat/completions` |
+| Responses | `/v1/responses` |
+| Anthropic Messages | `/v1/messages` |
+| Gemini native | `/v1beta/models/gpt-5.4:generateContent` |
+
+<Note>
+  Billing uses the normalized input and output token counts returned by the
+  gateway. Confirm live rates on the [models page](https://freemodel.app/models).
+</Note>

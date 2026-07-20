@@ -1,0 +1,51 @@
+---
+title: "Integrations"
+description: "Connect FreeModel to common development tools and OpenAI SDKs."
+---
+
+Use one FreeModel API key across tools that support OpenAI, Anthropic Messages, Gemini native, or OpenAI Responses-compatible gateways.
+
+## Development tools
+
+<CardGroup cols={2}>
+  <Card title="Claude Code" icon="terminal" href="/integrations/claude-code">
+    Route Claude Code through FreeModel's Anthropic Messages compatibility API.
+  </Card>
+  <Card title="Cursor" icon="code" href="/integrations/cursor">
+    Override Cursor's OpenAI base URL and add a FreeModel model ID.
+  </Card>
+  <Card title="Cline" icon="brackets-curly" href="/integrations/cline">
+    Select the OpenAI Compatible provider and configure the gateway.
+  </Card>
+  <Card title="Gemini CLI" icon="terminal" href="/integrations/gemini-cli">
+    Use the Gemini native compatibility endpoint from Google's CLI.
+  </Card>
+  <Card title="Codex CLI" icon="terminal" href="/integrations/codex-cli">
+    Add a Responses-compatible provider in `config.toml`.
+  </Card>
+</CardGroup>
+
+## Shared settings
+
+| Setting | Value |
+| --- | --- |
+| OpenAI base URL | `https://api.freemodel.app/v1` |
+| Anthropic gateway base URL | `https://api.freemodel.app` |
+| Gemini base URL | `https://api.freemodel.app` |
+| API key | A key created under **Console > API Keys** |
+
+<Warning>
+  Never commit an API key to a project settings file. Prefer environment
+  variables, a local ignored file, or the tool's encrypted credential store.
+</Warning>
+
+## SDKs
+
+<CardGroup cols={2}>
+  <Card title="OpenAI Python" icon="python" href="/sdks/openai-python">
+    Configure the official Python SDK with `base_url`.
+  </Card>
+  <Card title="OpenAI Node.js" icon="node-js" href="/sdks/openai-node">
+    Configure the official JavaScript SDK with `baseURL`.
+  </Card>
+</CardGroup>

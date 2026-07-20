@@ -1,0 +1,50 @@
+---
+title: "GPT-5.6 Luna"
+description: "Use the lowest-priced GPT-5.6 route on FreeModel."
+api: "POST /v1/chat/completions"
+---
+
+`gpt-5.6-luna` is the lowest-priced GPT-5.6 route in the current FreeModel catalog. Treat it as a distinct model ID when setting limits, monitoring usage, and comparing output quality.
+
+| Property | Value |
+| --- | --- |
+| Model ID | `gpt-5.6-luna` |
+| Input price | $0.25 per 1M tokens |
+| Output price | $2.00 per 1M tokens |
+| Streaming | Supported with `stream: true` |
+
+<ParamField body="model" type="string" required>
+  Set to `gpt-5.6-luna`.
+</ParamField>
+
+<ParamField body="messages" type="array" required>
+  Ordered system, user, and assistant messages.
+</ParamField>
+
+## Request
+
+```bash
+curl https://api.freemodel.app/v1/chat/completions \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-5.6-luna",
+    "messages": [{"role": "user", "content": "Convert this support note into structured JSON."}]
+  }'
+```
+
+Read generated text from `choices[0].message.content`. See [Chat Completions protocol](/api-reference/chat-completions) for streaming and response fields.
+
+## Compatible protocol paths
+
+| Format | Path |
+| --- | --- |
+| Chat Completions | `/v1/chat/completions` |
+| Responses | `/v1/responses` |
+| Anthropic Messages | `/v1/messages` |
+| Gemini native | `/v1beta/models/gpt-5.6-luna:generateContent` |
+
+<Tip>
+  Benchmark Luna against your real prompts before selecting it only by price.
+  FreeModel does not alias it to another GPT-5.6 route.
+</Tip>

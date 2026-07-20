@@ -1,0 +1,33 @@
+---
+title: "Security & Configuration"
+description: "Protect API keys and configure FreeModel clients safely."
+---
+
+<AccordionGroup>
+  <Accordion title="Can I call FreeModel directly from browser code?">
+    Do not expose a secret API key in browser JavaScript or a mobile binary.
+    Send requests from your server and apply user-level authorization there.
+  </Accordion>
+  <Accordion title="Where should I store the API key?">
+    Use a secret manager or server-side environment variable. For local tools,
+    use their encrypted credential store or a user-level configuration excluded
+    from version control.
+  </Accordion>
+  <Accordion title="What should I do if a key is exposed?">
+    Delete the key immediately under **Console > API Keys**, create a new one,
+    update the affected environments, and review request logs for unexpected use.
+  </Accordion>
+  <Accordion title="Should different environments share one key?">
+    Prefer separate development, staging, production, and tool-specific keys.
+    This limits blast radius and makes usage attribution easier.
+  </Accordion>
+  <Accordion title="How do I secure a webhook endpoint?">
+    Pass a `webhook_secret`, verify the `X-Shim-Signature` over the raw request
+    body, reject old timestamps, and deduplicate final-state deliveries.
+  </Accordion>
+  <Accordion title="Can reference images use private URLs?">
+    No. Video reference inputs must be publicly reachable `http` or `https`
+    URLs. Private, loopback, local, and reserved network destinations are
+    rejected.
+  </Accordion>
+</AccordionGroup>

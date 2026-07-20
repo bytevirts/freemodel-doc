@@ -1,0 +1,69 @@
+---
+title: "Cline"
+description: "Configure Cline's OpenAI Compatible provider for FreeModel."
+---
+
+Cline has a dedicated **OpenAI Compatible** provider with fields for the base URL, API key, model ID, context settings, and displayed prices.
+
+## Configure Cline
+
+<Steps>
+  <Step title="Open provider settings">
+    Install Cline in VS Code, open the Cline panel, then choose the settings icon.
+  </Step>
+  <Step title="Select the provider">
+    Set **API Provider** to **OpenAI Compatible**.
+  </Step>
+  <Step title="Enter gateway settings">
+    Set **Base URL** to `https://api.freemodel.app/v1`, enter your FreeModel API
+    key, and set **Model ID** to an exact text model ID.
+  </Step>
+  <Step title="Set displayed pricing">
+    Enter the model's input and output price from its FreeModel model page so
+    Cline's local cost estimate uses the correct rate.
+  </Step>
+  <Step title="Verify">
+    Use Cline's verification control, then send a small read-only task before
+    enabling automatic edits or terminal actions.
+  </Step>
+</Steps>
+
+## Example settings
+
+| Field | Value |
+| --- | --- |
+| API Provider | OpenAI Compatible |
+| Base URL | `https://api.freemodel.app/v1` |
+| API Key | Your FreeModel key |
+| Model ID | `gpt-5.4-mini` |
+| Input price | `$0.25` per 1M tokens |
+| Output price | `$1.50` per 1M tokens |
+
+<Warning>
+  Cline's context-window and capability fields are client-side declarations.
+  Do not guess a context size or enable image/computer-use support unless you
+  have verified it for the selected model.
+</Warning>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Verification returns 401">
+    Re-enter the API key and make sure no whitespace was included. Confirm the
+    base URL ends in `/v1`.
+  </Accordion>
+  <Accordion title="Verification returns model_not_found">
+    Call [`GET /v1/models`](/api-reference/list-models) with the same key and
+    copy an exact returned model ID.
+  </Accordion>
+  <Accordion title="Cline's cost display is wrong">
+    Cline does not fetch FreeModel pricing automatically. Update its model
+    configuration with the input and output rates shown on the individual model
+    page.
+  </Accordion>
+  <Accordion title="Tool calls fail but plain chat works">
+    Test another text route and reduce optional capability declarations. A
+    successful Chat Completions request does not guarantee identical agent-tool
+    behavior across models.
+  </Accordion>
+</AccordionGroup>

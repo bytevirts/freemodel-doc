@@ -1,0 +1,50 @@
+---
+title: "GPT-5.6 Terra"
+description: "Call the premium gpt-5.6-terra text route through FreeModel."
+api: "POST /v1/chat/completions"
+---
+
+`gpt-5.6-terra` is the highest-priced GPT-5.6 route in the current FreeModel catalog. Use it deliberately for workloads where your evaluation shows enough quality gain to justify the higher token rate.
+
+| Property | Value |
+| --- | --- |
+| Model ID | `gpt-5.6-terra` |
+| Input price | $5.00 per 1M tokens |
+| Output price | $40.00 per 1M tokens |
+| Streaming | Supported with `stream: true` |
+
+<ParamField body="model" type="string" required>
+  Set to `gpt-5.6-terra`.
+</ParamField>
+
+<ParamField body="messages" type="array" required>
+  Ordered system, user, and assistant messages.
+</ParamField>
+
+## Request
+
+```bash
+curl https://api.freemodel.app/v1/chat/completions \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-5.6-terra",
+    "messages": [{"role": "user", "content": "Audit this distributed transaction design."}]
+  }'
+```
+
+Read generated text from `choices[0].message.content`. See [Chat Completions protocol](/api-reference/chat-completions) for streaming and response fields.
+
+## Compatible protocol paths
+
+| Format | Path |
+| --- | --- |
+| Chat Completions | `/v1/chat/completions` |
+| Responses | `/v1/responses` |
+| Anthropic Messages | `/v1/messages` |
+| Gemini native | `/v1beta/models/gpt-5.6-terra:generateContent` |
+
+<Warning>
+  Terra output is $40 per 1M tokens. Apply per-key quota limits and explicit
+  output limits before enabling it for unbounded or user-controlled workloads.
+</Warning>

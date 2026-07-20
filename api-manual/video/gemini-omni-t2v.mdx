@@ -1,0 +1,52 @@
+---
+title: "Gemini Omni T2V"
+description: "Generate a fixed 10-second video from text with gemini-omni-t2v."
+api: "POST /v1/videos"
+---
+
+`gemini-omni-t2v` creates a video from a text prompt. It does not accept `image_urls`.
+
+| Property | Value |
+| --- | --- |
+| Model ID | `gemini-omni-t2v` |
+| Duration | Fixed 10 seconds |
+| Output | 720p or 1080p, native audio |
+| Price | $0.25 per request (25 credits) |
+
+<ParamField body="model" type="string" required>
+  Set to `gemini-omni-t2v`.
+</ParamField>
+
+<ParamField body="prompt" type="string" required>
+  Describe the scene, movement, camera, and audio intent.
+</ParamField>
+
+<ParamField body="seconds" type="string" required>
+  Set to `"10"`.
+</ParamField>
+
+<ParamField body="size" type="string" default="1280x720">
+  Recommended values are `1280x720` or `1920x1080` for landscape,
+  `720x1280` or `1080x1920` for portrait, and `1024x1024` for square.
+</ParamField>
+
+## Request
+
+```bash
+curl https://api.freemodel.app/v1/videos \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-omni-t2v",
+    "prompt": "A paper airplane glides through a sunlit library, cinematic tracking shot",
+    "seconds": "10",
+    "size": "1920x1080"
+  }'
+```
+
+The response returns a queued task `id`. Follow the [Video API workflow](/api-reference/video-generation) to poll and download the completed MP4.
+
+<Warning>
+  Do not send `image_urls` with this model. Use `gemini-omni-i2v` for a source
+  image or `gemini-omni-r2v` for visual references.
+</Warning>

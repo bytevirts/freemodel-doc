@@ -1,117 +1,105 @@
 ---
 title: "Quickstart"
-description: "Send your first FreeModel chat completion."
+description: "Create a key, choose a model, and send text, image, or video requests."
 ---
 
-This guide sends a chat completion through the OpenAI-compatible API.
+This guide takes you from a new account to a working FreeModel request.
 
-## Before you begin
+## Step 1: Get an API key
 
-Create an API key in the FreeModel Console under **API Keys**. Add prepaid balance under **Billing** before sending requests.
-
-## Send a chat completion
-
-Set your key in the current shell, then run the request.
+1. [Create a FreeModel account](https://freemodel.app/sign-up).
+2. Add prepaid balance under **Console > Billing**.
+3. Open **Console > API Keys** and create a key.
+4. Store the key in a server-side environment variable.
 
 ```bash
 export FREEMODEL_API_KEY="sk-xxxx"
+```
 
+## Step 2: Choose a model
+
+List the models available to your key:
+
+```bash
+curl https://api.freemodel.app/v1/models \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY"
+```
+
+Start with one of these routes:
+
+| Modality | Model | Price |
+| --- | --- | --- |
+| Text | `gpt-5.4-mini` | $0.25 input / $1.50 output per 1M tokens |
+| Image | `gpt-image-2` | $0.01 per image |
+| Video | `gemini-omni-t2v` | $0.25 per 10-second request |
+
+## Step 3: Send a request
+
+<CodeGroup>
+```bash Text
 curl https://api.freemodel.app/v1/chat/completions \
   -H "Authorization: Bearer $FREEMODEL_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-5.4-mini",
-    "messages": [
-      {
-        "role": "user",
-        "content": "Write a one-sentence welcome to FreeModel."
-      }
-    ]
+    "messages": [{"role": "user", "content": "Write one welcome sentence."}]
   }'
 ```
 
-The response contains the generated text at `choices[0].message.content`.
-
-## Use an OpenAI SDK
-
-FreeModel works with the official OpenAI SDKs. Set `base_url` to the FreeModel API base URL.
-
-<CodeGroup>
-```python Python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="sk-xxxx",
-    base_url="https://api.freemodel.app/v1",
-)
-
-completion = client.chat.completions.create(
-    model="gpt-5.4-mini",
-    messages=[
-        {"role": "user", "content": "Write a one-sentence welcome to FreeModel."}
-    ],
-)
-
-print(completion.choices[0].message.content)
-```
-
-```javascript Node.js
-const OpenAI = require("openai");
-
-async function main() {
-  const client = new OpenAI({
-    apiKey: "sk-xxxx",
-    baseURL: "https://api.freemodel.app/v1",
-  });
-
-  const completion = await client.chat.completions.create({
-    model: "gpt-5.4-mini",
-    messages: [
-      { role: "user", content: "Write a one-sentence welcome to FreeModel." },
-    ],
-  });
-
-  console.log(completion.choices[0].message.content);
-}
-
-main();
-```
-</CodeGroup>
-
-Install the matching SDK before running the example:
-
-<CodeGroup>
-```bash Python
-pip install openai
-```
-
-```bash Node.js
-npm install openai
-```
-</CodeGroup>
-
-## Stream the response
-
-Set `stream` to `true` to receive server-sent events as text is generated.
-
-```bash
-curl -N https://api.freemodel.app/v1/chat/completions \
-  -H "Authorization: Bearer sk-xxxx" \
+```bash Image
+curl https://api.freemodel.app/v1/images/generations \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4-mini",
-    "stream": true,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Count from one to three."
-      }
-    ]
+    "model": "gpt-image-2",
+    "prompt": "A clean indigo paper lantern on a white background",
+    "size": "1024x1024"
   }'
 ```
 
-See [Chat completions](/api-reference/chat-completions#stream-a-response) for the streaming event format.
+```bash Video
+curl https://api.freemodel.app/v1/videos \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-omni-t2v",
+    "prompt": "A paper airplane glides through a sunlit library",
+    "seconds": "10",
+    "size": "1280x720"
+  }'
+```
+</CodeGroup>
 
-## Generate media
+Text and image requests return their content directly. Video requests return a task `id` because generation is asynchronous.
 
-Keep your first integration chat-first. When you need generated media, use [Images](/api-reference/images) to create and decode a synchronous image response, or use [Video generation](/api-reference/video-generation) to submit, poll, and download an asynchronous video.
+## Step 4: Check a video task
+
+```bash
+curl "https://api.freemodel.app/v1/videos/$VIDEO_ID?model=gemini-omni-t2v" \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY"
+```
+
+When the status becomes `completed`, download the file:
+
+```bash
+curl -L "https://api.freemodel.app/v1/videos/$VIDEO_ID/content?model=gemini-omni-t2v" \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  --output video.mp4
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Model pages" icon="sparkles" href="/api-manual/text/gpt-5-4">
+    Review exact parameters and prices for every live model.
+  </Card>
+  <Card title="Development tools" icon="code" href="/integrations">
+    Connect Claude Code, Cursor, Cline, Gemini CLI, or Codex CLI.
+  </Card>
+  <Card title="Video workflow" icon="video" href="/guides/video-workflow">
+    Build reliable polling, download, and webhook handling.
+  </Card>
+  <Card title="Error handling" icon="triangle-exclamation" href="/errors">
+    Recover from authentication, quota, rate-limit, and upstream errors.
+  </Card>
+</CardGroup>

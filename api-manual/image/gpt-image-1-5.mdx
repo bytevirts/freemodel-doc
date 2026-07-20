@@ -1,0 +1,56 @@
+---
+title: "GPT Image 1.5"
+description: "Generate images with the token-billed gpt-image-1.5 route."
+api: "POST /v1/images/generations"
+---
+
+`gpt-image-1.5` is a separate OpenAI Images-compatible route with token-based billing. Use the exact model ID including the dot.
+
+| Property | Value |
+| --- | --- |
+| Model ID | `gpt-image-1.5` |
+| Input price | $5.00 per 1M tokens |
+| Output price | $40.00 per 1M tokens |
+| Response | `data[0].b64_json` |
+
+<ParamField body="model" type="string" required>
+  Set to `gpt-image-1.5`.
+</ParamField>
+
+<ParamField body="prompt" type="string" required>
+  Describe the desired subject, composition, lighting, and style.
+</ParamField>
+
+<ParamField body="size" type="string">
+  Use `1024x1024`, `1536x1024`, or `1024x1536`. Omit the field for automatic
+  framing.
+</ParamField>
+
+<ParamField body="n" type="integer" default="1">
+  Set to `1`.
+</ParamField>
+
+## Request
+
+```bash
+curl https://api.freemodel.app/v1/images/generations \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-image-1.5",
+    "prompt": "A paper-cut city map in indigo, coral, black, and white",
+    "size": "1024x1024",
+    "n": 1
+  }' \
+  | jq -r '.data[0].b64_json' \
+  | base64 --decode > image.png
+```
+
+## Billing
+
+FreeModel meters input and generated image output tokens. It does not apply a fixed per-image charge to this route.
+
+<Tip>
+  Evaluate `gpt-image-1` and `gpt-image-1.5` with the same prompts and sizes.
+  Their public token prices are currently equal.
+</Tip>

@@ -1,14 +1,15 @@
 ---
-title: "Chat completions"
-description: "Create OpenAI-compatible chat completions and streams."
+title: "Chat Completions protocol"
+description: "Common OpenAI-compatible chat request, response, and streaming rules."
 api: "POST /v1/chat/completions"
 ---
 
-Create a model response from a list of chat messages.
+Create a model response from a list of chat messages. Choose an exact model page under **Text Series** for pricing and the recommended model ID.
 
 <ParamField body="model" type="string" required>
-  A model ID available to your API key. Use
-  [`GET /v1/models`](/api-reference/list-models) to discover IDs.
+  A text model ID available to your API key. Use
+  [`GET /v1/models`](/api-reference/list-models) to discover IDs, then open its
+  individual model page for current pricing.
 </ParamField>
 
 <ParamField body="messages" type="array" required>

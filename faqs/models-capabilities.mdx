@@ -1,0 +1,41 @@
+---
+title: "Models & Capabilities"
+description: "Choose a model, protocol, duration, resolution, and reference mode."
+---
+
+<AccordionGroup>
+  <Accordion title="Which text protocols does FreeModel support?">
+    FreeModel supports OpenAI Chat Completions, OpenAI Responses, Anthropic
+    Messages, and Gemini native `generateContent` for the live GPT text routes.
+  </Accordion>
+  <Accordion title="Does FreeModel currently offer Claude text models?">
+    No Claude model ID is in the current live catalog. Claude Code can connect
+    through the Anthropic Messages-compatible protocol, but the selected model
+    is a FreeModel GPT route.
+  </Accordion>
+  <Accordion title="Which Seedance 2 durations are available?">
+    Both `video-ds-2.0` and `video-ds-2.0-fast` accept 5, 10, or 15 seconds.
+    Prices are $1, $2, and $3. Output is 720p.
+  </Accordion>
+  <Accordion title="Is familySlug part of the video API?">
+    No. `familySlug` is an internal Portal value. Public video requests use
+    `model`, `prompt`, `seconds`, and the model-specific framing fields.
+  </Accordion>
+  <Accordion title="Which Gemini Omni resolutions are available?">
+    Choose a 720p or 1080p landscape or portrait `size`. Square output uses
+    `1024x1024`. Each request generates a fixed 10-second result.
+  </Accordion>
+  <Accordion title="Which Veo 3.1 resolutions are available?">
+    Model IDs without `-4k` produce 1080p. `veo3-1-lite-4k`,
+    `veo3-1-fast-4k`, and `veo3-1-quality-4k` produce 4K. All Veo routes are
+    fixed at 8 seconds.
+  </Accordion>
+  <Accordion title="How many Veo reference images can I send?">
+    Lite, Fast, and Quality routes accept zero to two public image URLs.
+    `veo3-1-fast-ref` requires one to three.
+  </Accordion>
+  <Accordion title="How do I discover newly added models?">
+    Call [`GET /v1/models`](/api-reference/list-models) at runtime and check the
+    [live models page](https://freemodel.app/models) for current prices.
+  </Accordion>
+</AccordionGroup>

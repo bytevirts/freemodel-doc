@@ -1,0 +1,73 @@
+---
+title: "Gemini CLI"
+description: "Point Google Gemini CLI at FreeModel's Gemini native compatibility endpoint."
+---
+
+Gemini CLI uses Google's native `generateContent` protocol. FreeModel exposes that protocol at `/v1beta/models/{model}:generateContent` and accepts the current GPT text model IDs.
+
+## Install and verify
+
+```bash
+npm install -g @google/gemini-cli
+gemini --version
+```
+
+## Configure FreeModel
+
+```bash
+export GEMINI_API_KEY="$FREEMODEL_API_KEY"
+export GOOGLE_GEMINI_BASE_URL="https://api.freemodel.app"
+```
+
+The correct current base URL variable is `GOOGLE_GEMINI_BASE_URL`. Do not use `GEMINI_BASE_URL`; Gemini CLI does not read that variable.
+
+If your shell already has Google credentials, remove the conflicting values for this session:
+
+```bash
+unset GOOGLE_API_KEY
+unset GOOGLE_GENAI_USE_VERTEXAI
+```
+
+## Send a request
+
+```bash
+gemini --model gpt-5.4-mini --prompt "Review this function for edge cases."
+```
+
+Run `gemini` without `--prompt` to enter interactive mode.
+
+## Persist the variables
+
+Add the two exports to your shell profile or a local `.env` file that is excluded from version control.
+
+```bash
+export GEMINI_API_KEY="sk-xxxx"
+export GOOGLE_GEMINI_BASE_URL="https://api.freemodel.app"
+```
+
+<Note>
+  Gemini CLI's native request format was verified against FreeModel with
+  `gpt-5.4-mini`. The gateway translates the request; the model is not a Google
+  Gemini model despite the client protocol.
+</Note>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Gemini CLI says both GOOGLE_API_KEY and GEMINI_API_KEY are set">
+    Run `unset GOOGLE_API_KEY` before starting the CLI. Gemini CLI otherwise
+    prefers `GOOGLE_API_KEY`, which may send the wrong credential to FreeModel.
+  </Accordion>
+  <Accordion title="Requests still go to Google's API">
+    Check that the variable name is exactly `GOOGLE_GEMINI_BASE_URL` and the
+    value is `https://api.freemodel.app` without `/v1` or `/v1beta`.
+  </Accordion>
+  <Accordion title="The model is rejected">
+    Use an ID returned by [`GET /v1/models`](/api-reference/list-models). Do not
+    use a Gemini model name unless it is present in the FreeModel catalog.
+  </Accordion>
+  <Accordion title="A native Gemini feature is unavailable">
+    FreeModel converts the core content-generation protocol. Google-specific
+    account, grounding, caching, or hosted-tool features may not be available.
+  </Accordion>
+</AccordionGroup>

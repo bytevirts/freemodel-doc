@@ -1,0 +1,42 @@
+---
+title: "Veo 3.1 Quality 4K"
+description: "Generate an 8-second 4K Veo 3.1 Quality video for $1.50."
+api: "POST /v1/videos"
+---
+
+`veo3-1-quality-4k` is the highest-priced Veo 3.1 route. It creates a fixed 8-second 4K result with synchronized native audio.
+
+| Property | Value |
+| --- | --- |
+| Model ID | `veo3-1-quality-4k` |
+| Duration | Fixed 8 seconds |
+| Resolution | 3840x2160 or 2160x3840 |
+| References | Optional, 1-2 public images |
+| Price | $1.50 per request (150 credits) |
+
+<ParamField body="model" type="string" required>Set to `veo3-1-quality-4k`.</ParamField>
+<ParamField body="prompt" type="string" required>Describe the shot and intended audio.</ParamField>
+<ParamField body="seconds" type="string" required>Set to `"8"`.</ParamField>
+<ParamField body="aspect_ratio" type="string" default="16:9">Use `16:9` or `9:16`.</ParamField>
+<ParamField body="image_urls" type="string[]">Optionally send one start frame or a start and end frame.</ParamField>
+
+## Request
+
+```bash
+curl https://api.freemodel.app/v1/videos \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "veo3-1-quality-4k",
+    "prompt": "A wide alpine observatory opens at dawn, subtle machinery and mountain wind",
+    "seconds": "8",
+    "aspect_ratio": "16:9"
+  }'
+```
+
+Follow the [Video API workflow](/api-reference/video-generation) and include `model=veo3-1-quality-4k` when polling and downloading.
+
+<Warning>
+  This route costs 150 credits for each submitted 8-second generation. Apply
+  per-key quotas before exposing it to end users.
+</Warning>

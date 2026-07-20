@@ -1,233 +1,88 @@
 ---
-title: "Video generation"
-description: "Create, monitor, and download Gemini Omni, Seedance 2, and Veo 3.1 videos."
+title: "Video API workflow"
+description: "Submit, monitor, and download an asynchronous video task."
 api: "POST /v1/videos"
 ---
 
-Video generation is asynchronous. Submit a request, save the returned `id`, poll until the task completes, then download the MP4. Completion time depends on the selected model and current upstream capacity.
+All FreeModel video routes use the same asynchronous workflow. Choose a model from the **Video Series** sidebar, submit a request, save the returned `id`, and poll until the task completes.
 
-## Available models
-
-| Model                    | Input mode                         |             Duration |             Price |
-| ------------------------ | ---------------------------------- | -------------------: | ----------------: |
-| `gemini-omni-t2v`        | Text prompt                        |           10 seconds | $0.25 per request |
-| `gemini-omni-i2v`        | Prompt + source image URLs         |           10 seconds | $0.25 per request |
-| `gemini-omni-r2v`        | Prompt + reference image URLs      |           10 seconds | $0.25 per request |
-| `gemini-omni-extend`     | Prompt + image URLs for extension  |           10 seconds | $0.25 per request |
-| `video-ds-2.0`           | Text prompt                        | 5, 10, or 15 seconds |     $1, $2, or $3 |
-| `video-ds-2.0-fast`      | Text prompt                        | 5, 10, or 15 seconds |     $1, $2, or $3 |
-| `veo3-1-lite`            | Text + optional start/end frames   |            8 seconds | $0.10 per request |
-| `veo3-1-lite-4k`         | Text + optional start/end frames   |            8 seconds | $0.15 per request |
-| `veo3-1-fast`            | Text + optional start/end frames   |            8 seconds | $0.25 per request |
-| `veo3-1-fast-4k`         | Text + optional start/end frames   |            8 seconds | $0.45 per request |
-| `veo3-1-fast-ref`        | Text + 1-3 required references     |            8 seconds | $0.25 per request |
-| `veo3-1-quality`         | Text + optional start/end frames   |            8 seconds | $1.20 per request |
-| `veo3-1-quality-4k`      | Text + optional start/end frames   |            8 seconds | $1.50 per request |
-
-The [models page](https://freemodel.app/models) is the source of truth for current availability and rates.
+The model page defines the accepted duration, aspect ratio, resolution, and reference-image rules. Do not send values from one model family to another.
 
 <ParamField body="model" type="string" required>
-  A video model ID from the table above.
+  An available video model ID. Call [`GET /v1/models`](/api-reference/list-models)
+  and select a model whose `supported_endpoint_types` includes `openai-video`.
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
-  Describe the video you want to generate.
+  Describe the subject, action, camera movement, lighting, and audio intent.
 </ParamField>
 
 <ParamField body="seconds" type="string" required>
-  Use `"10"` for Gemini Omni or `"8"` for every Veo 3.1 model. Seedance 2
-  accepts `"5"`, `"10"`, or `"15"`; these cost $1, $2, and $3 respectively
-  (100, 200, and 300 credits).
+  A model-specific duration. Use the exact value documented on the selected
+  model page.
 </ParamField>
 
 <ParamField body="size" type="string">
-  Gemini Omni only. Use `1280x720`, `1920x1080`, `720x1280`, or `1024x1024`.
+  Gemini Omni only. Pass pixel dimensions such as `1280x720`.
 </ParamField>
 
 <ParamField body="aspect_ratio" type="string">
-  Seedance 2 accepts `16:9`, `9:16`, or `1:1`. Veo 3.1 accepts only `16:9` or
-  `9:16`. Do not send `size` for Seedance or Veo. Seedance output is 720p; Veo
-  models without `-4k` output 1080p, and the `-4k` models output 4K.
+  Seedance 2 and Veo 3.1 only. Do not send `size` with these routes.
 </ParamField>
 
 <ParamField body="image_urls" type="string[]">
-  Gemini Omni image-guided modes accept 1-5 public http(s) URLs. Veo 3.1 Lite,
-  Fast, and Quality routes accept 1-2 optional URLs for start and end frames.
-  `veo3-1-fast-ref` requires 1-3 URLs. Do not send this field with
-  `gemini-omni-t2v` or Seedance 2.
+  Public `http` or `https` reference URLs when the selected model accepts them.
 </ParamField>
 
-## Submit a request
+<ParamField body="webhook" type="string">
+  Optional public callback URL. FreeModel sends the final task object when the
+  task completes or fails.
+</ParamField>
 
-<CodeGroup>
-```bash Veo 3.1 Lite 4K
-curl https://api.freemodel.app/v1/videos \
-  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "veo3-1-lite-4k",
-    "prompt": "A coastal train crosses a stone bridge at sunrise, synchronized waves and rail sound",
-    "seconds": "8",
-    "aspect_ratio": "16:9"
-  }'
-```
+## Submit a task
 
-```bash Seedance 2 Fast
+```bash
 curl https://api.freemodel.app/v1/videos \
   -H "Authorization: Bearer $FREEMODEL_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "video-ds-2.0-fast",
-    "prompt": "A paper sculpture unfolds into a city skyline, locked camera, clean studio light",
+    "prompt": "A paper sculpture unfolds into a city skyline",
     "seconds": "5",
     "aspect_ratio": "16:9"
   }'
 ```
 
-```bash Gemini Omni
-curl https://api.freemodel.app/v1/videos \
-  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gemini-omni-t2v",
-    "prompt": "A paper airplane glides through a sunlit library, cinematic tracking shot",
-    "seconds": "10",
-    "size": "1280x720"
-  }'
-```
-
-```python Python
-import json
-import os
-from urllib.request import Request, urlopen
-
-request = Request(
-    "https://api.freemodel.app/v1/videos",
-    data=json.dumps({
-        "model": "video-ds-2.0-fast",
-        "prompt": "A paper sculpture unfolds into a city skyline",
-        "seconds": "5",
-        "aspect_ratio": "16:9",
-    }).encode(),
-    headers={
-        "Authorization": f"Bearer {os.environ['FREEMODEL_API_KEY']}",
-        "Content-Type": "application/json",
-    },
-    method="POST",
-)
-
-with urlopen(request) as response:
-    video = json.load(response)
-
-print(video["id"])
-```
-
-```javascript Node.js
-const response = await fetch("https://api.freemodel.app/v1/videos", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.FREEMODEL_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    model: "video-ds-2.0-fast",
-    prompt: "A paper sculpture unfolds into a city skyline",
-    seconds: "5",
-    aspect_ratio: "16:9",
-  }),
-});
-
-if (!response.ok) throw new Error(await response.text());
-const video = await response.json();
-console.log(video.id);
-```
-
-</CodeGroup>
-
-<ResponseExample>
-```json Response
+```json
 {
   "id": "task_01HXYZ",
   "object": "video",
   "status": "queued",
-  "progress": 0,
   "model": "video-ds-2.0-fast",
-  "created_at": 1784045139,
   "seconds": "5"
 }
 ```
-</ResponseExample>
 
-## Poll video status
+## Poll and download
 
-Poll every 10 to 20 seconds while the status is `queued` or `in_progress`.
-Pass the same model ID in the `model` query parameter when polling and
-downloading a video task.
+Include the same `model` query value while polling and downloading.
 
 ```bash
 curl "https://api.freemodel.app/v1/videos/task_01HXYZ?model=video-ds-2.0-fast" \
   -H "Authorization: Bearer $FREEMODEL_API_KEY"
-```
 
-| Status        | Meaning                          | What to do                                     |
-| ------------- | -------------------------------- | ---------------------------------------------- |
-| `queued`      | The request is waiting to start. | Poll again.                                    |
-| `in_progress` | The video is generating.         | Poll again.                                    |
-| `completed`   | The video is ready.              | Download it from the content endpoint.         |
-| `failed`      | The request did not complete.    | Inspect the error and do not download content. |
-
-## Download the completed video
-
-Only download content after the task status is `completed`.
-
-<CodeGroup>
-```bash Curl
-curl "https://api.freemodel.app/v1/videos/task_01HXYZ/content?model=video-ds-2.0-fast" \
+curl -L "https://api.freemodel.app/v1/videos/task_01HXYZ/content?model=video-ds-2.0-fast" \
   -H "Authorization: Bearer $FREEMODEL_API_KEY" \
-  -o video.mp4
+  --output video.mp4
 ```
 
-```python Python
-import os
-from urllib.request import Request, urlopen
+Poll every 10 to 20 seconds while `status` is `queued` or `in_progress`. Download only after `status` becomes `completed`.
 
-video_id = "task_01HXYZ"
-request = Request(
-    f"https://api.freemodel.app/v1/videos/{video_id}/content?model=video-ds-2.0-fast",
-    headers={"Authorization": f"Bearer {os.environ['FREEMODEL_API_KEY']}"},
-)
-
-with urlopen(request) as response, open("video.mp4", "wb") as video_file:
-    while chunk := response.read(64 * 1024):
-        video_file.write(chunk)
-```
-
-```javascript Node.js
-const { createWriteStream } = require("node:fs");
-const { Readable } = require("node:stream");
-const { pipeline } = require("node:stream/promises");
-
-const videoId = "task_01HXYZ";
-const response = await fetch(
-  `https://api.freemodel.app/v1/videos/${videoId}/content?model=video-ds-2.0-fast`,
-  { headers: { Authorization: `Bearer ${process.env.FREEMODEL_API_KEY}` } },
-);
-
-if (!response.ok || !response.body) throw new Error(await response.text());
-await pipeline(Readable.fromWeb(response.body), createWriteStream("video.mp4"));
-```
-
-</CodeGroup>
-
-## Handle request errors
-
-| Condition                                | Action                                                                                    |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------- |
-| The model is unavailable to your key.    | Call [`GET /v1/models`](/api-reference/list-models) and choose a returned video model ID. |
-| The balance is insufficient.             | Add prepaid balance before submitting another request.                                    |
-| The duration is rejected.                | Use `"10"` for Gemini Omni, `"8"` for Veo 3.1, or `"5"`, `"10"`, or `"15"` for Seedance 2. |
-| A Gemini request rejects `aspect_ratio`. | Send `size` instead.                                                                      |
-| A Seedance or Veo request rejects `size`.| Send `aspect_ratio` instead.                                                              |
-| A Veo request rejects `1:1`.             | Use `16:9` or `9:16`.                                                                     |
-
-See [Errors](/errors) for the common error envelope.
+<CardGroup cols={2}>
+  <Card title="Task status API" icon="list-check" href="/api-reference/task-status">
+    Query the normalized task record and final media URLs.
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/api-reference/webhooks">
+    Receive the final task result without continuous polling.
+  </Card>
+</CardGroup>

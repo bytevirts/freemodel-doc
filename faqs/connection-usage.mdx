@@ -1,0 +1,35 @@
+---
+title: "Connection & Usage"
+description: "Troubleshoot API connectivity, authentication, model, and task errors."
+---
+
+<AccordionGroup>
+  <Accordion title="Why do I get 401 Unauthorized?">
+    Send the key as `Authorization: Bearer sk-...`. Confirm the key is active in
+    **Console > API Keys** and that your client is not sending an old key from a
+    different environment variable.
+  </Accordion>
+  <Accordion title="Why do I get model_not_found?">
+    Call [`GET /v1/models`](/api-reference/list-models) with the same key and
+    copy an exact returned ID. A model can be absent because it is unavailable,
+    disabled, or outside the key's model limits.
+  </Accordion>
+  <Accordion title="Why does an image request time out?">
+    Synchronous image generation often takes 20 to 60 seconds. Set a timeout of
+    at least 120 seconds. Do not automatically resubmit after an ambiguous
+    network timeout until you have checked request logs for a billed result.
+  </Accordion>
+  <Accordion title="Why is video generation not returned immediately?">
+    Video generation is asynchronous. Save the returned task ID, poll every 10
+    to 20 seconds, and download only after the status becomes `completed`.
+  </Accordion>
+  <Accordion title="What should I retry?">
+    Retry `429` and temporary `5xx` responses with exponential backoff and
+    jitter. Do not retry invalid parameters, a rejected key, an unavailable
+    model, or insufficient balance without fixing the cause.
+  </Accordion>
+  <Accordion title="Why does video polling fail after submission?">
+    Include the same exact model ID as `?model=...` in both status and content
+    URLs. Store the model ID together with every task ID.
+  </Accordion>
+</AccordionGroup>

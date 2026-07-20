@@ -1,0 +1,41 @@
+---
+title: "Veo 3.1 Lite"
+description: "Generate an 8-second 1080p Veo 3.1 video for $0.10."
+api: "POST /v1/videos"
+---
+
+`veo3-1-lite` is the lowest-priced Veo 3.1 route. It creates a fixed 8-second 1080p video with native synchronized audio.
+
+| Property | Value |
+| --- | --- |
+| Model ID | `veo3-1-lite` |
+| Duration | Fixed 8 seconds |
+| Resolution | 1920x1080 or 1080x1920 |
+| References | Optional, 1-2 public images |
+| Price | $0.10 per request (10 credits) |
+
+<ParamField body="model" type="string" required>Set to `veo3-1-lite`.</ParamField>
+<ParamField body="prompt" type="string" required>Describe the shot and intended audio.</ParamField>
+<ParamField body="seconds" type="string" required>Set to `"8"`.</ParamField>
+<ParamField body="aspect_ratio" type="string" default="16:9">Use `16:9` or `9:16`.</ParamField>
+<ParamField body="image_urls" type="string[]">Optionally send one start frame or a start and end frame.</ParamField>
+
+## Request
+
+```bash
+curl https://api.freemodel.app/v1/videos \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "veo3-1-lite",
+    "prompt": "A coastal train crosses a stone bridge at sunrise, natural rail sound",
+    "seconds": "8",
+    "aspect_ratio": "16:9"
+  }'
+```
+
+Follow the [Video API workflow](/api-reference/video-generation) and include `model=veo3-1-lite` when polling and downloading.
+
+<Card title="Open the Veo 3.1 playground" icon="play" href="https://freemodel.app/models/veo3-1">
+  Choose Lite and optionally add public start and end frames.
+</Card>

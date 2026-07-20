@@ -1,0 +1,77 @@
+---
+title: "Codex CLI"
+description: "Configure Codex CLI with FreeModel's OpenAI Responses-compatible endpoint."
+---
+
+Codex CLI supports custom model providers in `~/.codex/config.toml`. FreeModel's `/v1/responses` route was verified with the current Codex CLI and GPT text models.
+
+## Prerequisites
+
+- Install or update Codex CLI and confirm `codex --version` works.
+- Create a FreeModel API key and add prepaid balance.
+- Use a current text model. `gpt-5.4-mini` is the lowest-cost starting point.
+
+## Set the API key
+
+```bash
+export FREEMODEL_API_KEY="sk-xxxx"
+```
+
+Add that export to your shell profile or load it from a secret manager. Do not put the key directly in `config.toml`.
+
+## Add the provider
+
+Edit `~/.codex/config.toml`:
+
+```toml
+model = "gpt-5.4-mini"
+model_provider = "freemodel"
+
+[model_providers.freemodel]
+name = "FreeModel"
+base_url = "https://api.freemodel.app/v1"
+wire_api = "responses"
+env_key = "FREEMODEL_API_KEY"
+```
+
+`wire_api` must be `responses`. Current Codex versions do not use Chat Completions for custom agent sessions.
+
+## Verify
+
+```bash
+codex exec "Reply with OK only."
+```
+
+The startup summary should show `provider: freemodel` and your selected model. Use `codex` for an interactive session.
+
+## Switch models
+
+Change the top-level `model` value, or override it for one run:
+
+```bash
+codex --model gpt-5.5
+```
+
+Current model IDs include `gpt-5.4`, `gpt-5.4-mini`, `gpt-5.5`, `gpt-5.6`, `gpt-5.6-luna`, `gpt-5.6-sol`, and `gpt-5.6-terra`.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Codex opens a ChatGPT sign-in flow">
+    Confirm `model_provider = "freemodel"` is at the top level and the provider
+    block has the same `freemodel` identifier.
+  </Accordion>
+  <Accordion title="Codex reports a missing API key">
+    Export `FREEMODEL_API_KEY` in the shell that launches Codex. The `env_key`
+    field names the variable; it does not contain the secret itself.
+  </Accordion>
+  <Accordion title="The provider rejects wire_api">
+    Set `wire_api = "responses"` and update Codex CLI. Do not use `chat` with a
+    current version.
+  </Accordion>
+  <Accordion title="Plugin or hosted OpenAI features return 401">
+    Custom inference routes do not authenticate hosted ChatGPT services. Core
+    Codex agent requests can work while optional OpenAI-hosted features remain
+    unavailable.
+  </Accordion>
+</AccordionGroup>

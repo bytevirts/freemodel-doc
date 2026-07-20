@@ -1,0 +1,55 @@
+---
+title: "Seedance 2 Fast"
+description: "Generate a 5, 10, or 15-second 720p video with video-ds-2.0-fast."
+api: "POST /v1/videos"
+---
+
+`video-ds-2.0-fast` is the fast Seedance 2 text-to-video route. It has the same accepted durations, output sizes, and public prices as the standard route.
+
+| Seconds | Output size | Price | Credits |
+| ---: | --- | ---: | ---: |
+| 5 | 720p | $1.00 | 100 |
+| 10 | 720p | $2.00 | 200 |
+| 15 | 720p | $3.00 | 300 |
+
+<ParamField body="model" type="string" required>
+  Set to `video-ds-2.0-fast`.
+</ParamField>
+
+<ParamField body="prompt" type="string" required>
+  Describe the scene, action, camera movement, and visual style.
+</ParamField>
+
+<ParamField body="seconds" type="string" required>
+  Set to `"5"`, `"10"`, or `"15"`. The selected value determines the charge.
+</ParamField>
+
+<ParamField body="aspect_ratio" type="string" default="16:9">
+  Use `16:9`, `9:16`, or `1:1`. The corresponding output is `1280x720`,
+  `720x1280`, or `1024x1024`.
+</ParamField>
+
+## Request
+
+```bash
+curl https://api.freemodel.app/v1/videos \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "video-ds-2.0-fast",
+    "prompt": "A miniature train crosses a paper bridge at sunrise",
+    "seconds": "5",
+    "aspect_ratio": "9:16"
+  }'
+```
+
+The response returns a queued task `id`. Follow the [Video API workflow](/api-reference/video-generation) and keep `model=video-ds-2.0-fast` in the poll and download URLs.
+
+<Warning>
+  Do not send `familySlug` or `size`. `familySlug` is a Portal-only routing
+  value, not a public API field. Use `aspect_ratio` for this model.
+</Warning>
+
+<Card title="Open the Seedance 2 playground" icon="play" href="https://freemodel.app/models/seedance-2">
+  Choose the Fast route, duration, and aspect ratio in the Portal.
+</Card>

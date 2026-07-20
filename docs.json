@@ -2,6 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "FreeModel",
+  "description": "FreeModel API documentation for text, image, and video models, integrations, guides, and troubleshooting.",
   "colors": {
     "primary": "#4F46E5",
     "light": "#7C6FF0",
@@ -28,29 +29,58 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Get Started",
+        "tab": "API Manual",
         "groups": [
           {
-            "group": "Get Started",
+            "group": "Overview",
+            "icon": "book-open",
+            "pages": ["index"]
+          },
+          {
+            "group": "Text Series",
+            "icon": "font",
             "pages": [
-              "index",
-              "quickstart",
-              "authentication",
-              "errors",
-              "rate-limits",
-              "billing",
-              "models/gpt-image-2-all",
-              "models/seedance-2",
-              "models/veo-3-1"
+              "api-manual/text/gpt-5-4",
+              "api-manual/text/gpt-5-4-mini",
+              "api-manual/text/gpt-5-5",
+              "api-manual/text/gpt-5-6",
+              "api-manual/text/gpt-5-6-luna",
+              "api-manual/text/gpt-5-6-sol",
+              "api-manual/text/gpt-5-6-terra"
             ]
-          }
-        ]
-      },
-      {
-        "tab": "API Reference",
-        "groups": [
+          },
           {
-            "group": "API Reference",
+            "group": "Image Series",
+            "icon": "image",
+            "pages": [
+              "api-manual/image/gpt-image-1",
+              "api-manual/image/gpt-image-1-5",
+              "api-manual/image/gpt-image-2",
+              "api-manual/image/gpt-image-2-all"
+            ]
+          },
+          {
+            "group": "Video Series",
+            "icon": "video",
+            "pages": [
+              "api-manual/video/gemini-omni-t2v",
+              "api-manual/video/gemini-omni-i2v",
+              "api-manual/video/gemini-omni-r2v",
+              "api-manual/video/gemini-omni-extend",
+              "api-manual/video/video-ds-2-0",
+              "api-manual/video/video-ds-2-0-fast",
+              "api-manual/video/veo3-1-lite",
+              "api-manual/video/veo3-1-lite-4k",
+              "api-manual/video/veo3-1-fast",
+              "api-manual/video/veo3-1-fast-4k",
+              "api-manual/video/veo3-1-fast-ref",
+              "api-manual/video/veo3-1-quality",
+              "api-manual/video/veo3-1-quality-4k"
+            ]
+          },
+          {
+            "group": "Endpoint Reference",
+            "icon": "brackets-curly",
             "pages": [
               "api-reference/chat-completions",
               "api-reference/images",
@@ -59,17 +89,75 @@
             ]
           },
           {
-            "group": "Task management",
+            "group": "Task Management",
+            "icon": "list-check",
             "pages": ["api-reference/task-status", "api-reference/webhooks"]
           }
         ]
       },
       {
-        "tab": "SDKs",
+        "tab": "Integrations",
         "groups": [
           {
+            "group": "Overview",
+            "icon": "plug",
+            "pages": ["integrations/index"]
+          },
+          {
+            "group": "Development Tools",
+            "icon": "code",
+            "pages": [
+              "integrations/claude-code",
+              "integrations/cursor",
+              "integrations/cline",
+              "integrations/gemini-cli",
+              "integrations/codex-cli"
+            ]
+          },
+          {
             "group": "SDKs",
+            "icon": "box",
             "pages": ["sdks/openai-python", "sdks/openai-node"]
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "icon": "rocket",
+            "pages": ["quickstart", "authentication"]
+          },
+          {
+            "group": "Development Guide",
+            "icon": "book",
+            "pages": [
+              "guides/video-workflow",
+              "billing",
+              "rate-limits",
+              "errors"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "FAQs",
+        "groups": [
+          {
+            "group": "Overview",
+            "icon": "circle-question",
+            "pages": ["faqs/index"]
+          },
+          {
+            "group": "FAQ Topics",
+            "icon": "messages-question",
+            "pages": [
+              "faqs/connection-usage",
+              "faqs/account-billing",
+              "faqs/security-configuration",
+              "faqs/models-capabilities"
+            ]
           }
         ]
       }

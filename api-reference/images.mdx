@@ -1,127 +1,68 @@
 ---
-title: "Images"
-description: "Generate images with the OpenAI-compatible API."
+title: "Image API protocol"
+description: "Common request and response rules for image models."
 api: "POST /v1/images/generations"
 ---
 
-Generate one image from a text prompt. Image generation is synchronous and usually completes in 20 to 60 seconds. Set your client timeout to at least 120 seconds.
-
-The response contains the generated image as base64 in `data[0].b64_json`. Decode it and write the bytes to an image file. On macOS, replace `base64 --decode` in the curl example with `base64 -D`.
+FreeModel exposes an OpenAI-compatible image generations endpoint. Select the exact model page under **Image Series** for its price and output rules.
 
 <ParamField body="model" type="string" required>
-  Use `gpt-image-2` or `gpt-image-2-all`.
+  An image model ID returned by [`GET /v1/models`](/api-reference/list-models).
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
-  Describe the image you want to generate.
+  A clear description of the image to generate.
 </ParamField>
 
 <ParamField body="size" type="string">
-  `1024x1024` creates a 1:1 image. `1536x1024` creates a 3:2 image. `1024x1536`
-  creates a 2:3 image. Omit this field, or use another value, to use the
-  automatic aspect ratio.
+  Use `1024x1024`, `1536x1024`, or `1024x1536` for an explicit square,
+  landscape, or portrait frame. Omit it for automatic framing.
 </ParamField>
 
-<ParamField body="n" type="integer">
-  Omit this field or set it to `1`. Multiple images are not supported.
+<ParamField body="n" type="integer" default="1">
+  Request one image. The current FreeModel image routes do not support batch
+  generation.
 </ParamField>
 
-Output quality is fixed at 1K in v1.
+## Generate an image
 
-| Model             |           Price |
-| ----------------- | --------------: |
-| `gpt-image-2`     | $0.01 per image |
-| `gpt-image-2-all` | $0.02 per image |
-
-See the [live models page](https://freemodel.app/models) before shipping a hardcoded price.
-
-<RequestExample>
-```bash Curl
+```bash
 curl https://api.freemodel.app/v1/images/generations \
   -H "Authorization: Bearer $FREEMODEL_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-image-2",
-    "prompt": "A clean indigo hexagon logo on a white background",
-    "size": "1024x1024"
-  }' \
+    "prompt": "A precise indigo product icon on a white background",
+    "size": "1024x1024",
+    "n": 1
+  }'
+```
+
+Image generation is synchronous and can take 20 to 60 seconds. Set a client timeout of at least 120 seconds.
+
+## Decode the response
+
+The response contains base64 image bytes at `data[0].b64_json`.
+
+```bash
+curl https://api.freemodel.app/v1/images/generations \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"gpt-image-2","prompt":"An indigo paper lantern"}' \
   | jq -r '.data[0].b64_json' \
   | base64 --decode > image.png
 ```
 
-```python Python
-import base64
-import json
-import os
-from urllib.request import Request, urlopen
+On macOS, replace `base64 --decode` with `base64 -D`.
 
-request = Request(
-    "https://api.freemodel.app/v1/images/generations",
-    data=json.dumps({
-        "model": "gpt-image-2",
-        "prompt": "A clean indigo hexagon logo on a white background",
-        "size": "1024x1024",
-    }).encode(),
-    headers={
-        "Authorization": f"Bearer {os.environ['FREEMODEL_API_KEY']}",
-        "Content-Type": "application/json",
-    },
-    method="POST",
-)
-
-with urlopen(request, timeout=120) as response:
-    payload = json.load(response)
-
-with open("image.png", "wb") as image_file:
-    image_file.write(base64.b64decode(payload["data"][0]["b64_json"]))
-```
-
-```javascript Node.js
-const fs = require("node:fs/promises");
-
-async function main() {
-  const response = await fetch(
-    "https://api.freemodel.app/v1/images/generations",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.FREEMODEL_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-image-2",
-        prompt: "A clean indigo hexagon logo on a white background",
-        size: "1024x1024",
-      }),
-      signal: AbortSignal.timeout(120_000),
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error(await response.text());
-  }
-
-  const payload = await response.json();
-  await fs.writeFile(
-    "image.png",
-    Buffer.from(payload.data[0].b64_json, "base64"),
-  );
-}
-
-main();
-```
-
-</RequestExample>
-
-<ResponseExample>
-```json Response
+```json
 {
   "created": 1784045139,
-  "data": [
-    {
-      "b64_json": "iVBORw0KGgoAAAANSUhEUg..."
-    }
-  ]
+  "data": [{"b64_json": "iVBORw0KGgoAAAANSUhEUg..."}]
 }
 ```
-</ResponseExample>
+
+<Note>
+  GPT Image 1 and 1.5 are token-billed. GPT Image 2 routes are billed per
+  successful generation. See the individual model page before estimating cost.
+</Note>

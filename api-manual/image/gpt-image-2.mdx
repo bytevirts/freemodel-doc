@@ -1,0 +1,53 @@
+---
+title: "GPT Image 2"
+description: "Generate one 1K image for $0.01 with gpt-image-2."
+api: "POST /v1/images/generations"
+---
+
+`gpt-image-2` generates one 1K image per synchronous request. A successful generation costs **$0.01**, equal to **1 FreeModel credit**.
+
+| Property | Value |
+| --- | --- |
+| Model ID | `gpt-image-2` |
+| Price | $0.01 per image |
+| Output | 1K |
+| Response | `data[0].b64_json` |
+
+<ParamField body="model" type="string" required>
+  Set to `gpt-image-2`.
+</ParamField>
+
+<ParamField body="prompt" type="string" required>
+  Describe the desired subject, composition, lighting, and style.
+</ParamField>
+
+<ParamField body="size" type="string">
+  Use `1024x1024`, `1536x1024`, or `1024x1536`. Other values use automatic
+  framing.
+</ParamField>
+
+<ParamField body="n" type="integer" default="1">
+  Set to `1`; multiple-image requests are not supported.
+</ParamField>
+
+## Request
+
+```bash
+curl https://api.freemodel.app/v1/images/generations \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-image-2",
+    "prompt": "A translucent mechanical keyboard, precise editorial photography",
+    "size": "1536x1024",
+    "n": 1
+  }' \
+  | jq -r '.data[0].b64_json' \
+  | base64 --decode > image.png
+```
+
+The request normally completes in 20 to 60 seconds. Set a timeout of at least 120 seconds and decode `data[0].b64_json` as image bytes.
+
+<Card title="Open the model playground" icon="wand-magic-sparkles" href="https://freemodel.app/models/gpt-image-2">
+  Run the same route from the FreeModel model page.
+</Card>

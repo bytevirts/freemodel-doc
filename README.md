@@ -1,55 +1,38 @@
-# Mintlify Starter Kit
+# FreeModel documentation
 
-Use the starter kit to get your docs deployed and ready to customize.
+Mintlify documentation for the FreeModel API at `https://api.freemodel.app`.
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+The public information architecture has four top-level tabs:
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
+- **API Manual**: overview, individual text/image/video model pages, endpoint references, and task management
+- **Integrations**: development tools and OpenAI SDKs
+- **Guides**: quickstart, authentication, video workflow, billing, rate limits, and errors
+- **FAQs**: connection, billing, security, and model capability questions
 
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+## Local development
 
-## AI-assisted writing
-
-Set up your AI coding tool to work with Mintlify:
+Validate the complete Mintlify build:
 
 ```bash
-npx skills add https://mintlify.com/docs
+npx -y mintlify@4.2.715 validate
 ```
 
-This command installs Mintlify's documentation skill for your configured AI tools like Claude Code, Cursor, Windsurf, and others. The skill includes component reference, writing standards, and workflow guidance.
+Start the local preview:
 
-See the [AI tools guides](/ai-tools) for tool-specific setup.
-
-## Development
-
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
-
-```
-npm i -g mint
+```bash
+npx -y mintlify@4.2.715 dev --port 3000
 ```
 
-Run the following command at the root of your documentation, where your `docs.json` is located:
+Open `http://localhost:3000`.
 
-```
-mint dev
-```
+## Content rules
 
-View your local preview at `http://localhost:3000`.
+- Keep `docs.json` navigation synchronized with every visible page.
+- Give every live model its own page under `api-manual/{text,image,video}`.
+- Copy model IDs, prices, and availability from the live FreeModel catalog.
+- Keep Portal-only values such as `familySlug` out of public API payloads.
+- Use individual model pages for model-specific duration, resolution, reference, and billing rules.
 
-## Publishing changes
+## Publishing
 
-Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
-
-## Need help?
-
-### Troubleshooting
-
-- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
-- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
-
-### Resources
-- [Mintlify documentation](https://mintlify.com/docs)
+Mintlify deploys the documentation from the repository's default branch. Validate locally before pushing changes to that branch.

@@ -1,0 +1,54 @@
+---
+title: "GPT-5.6"
+description: "Call the gpt-5.6 text route through FreeModel."
+api: "POST /v1/chat/completions"
+---
+
+`gpt-5.6` is the standard GPT-5.6 route. It supports the same four text protocol surfaces as the rest of the live GPT catalog.
+
+| Property | Value |
+| --- | --- |
+| Model ID | `gpt-5.6` |
+| Input price | $1.75 per 1M tokens |
+| Output price | $14.00 per 1M tokens |
+| Streaming | Supported with `stream: true` |
+
+<ParamField body="model" type="string" required>
+  Set to `gpt-5.6`.
+</ParamField>
+
+<ParamField body="messages" type="array" required>
+  Ordered system, user, and assistant messages.
+</ParamField>
+
+<ParamField body="stream" type="boolean" default="false">
+  Set to `true` to receive server-sent events.
+</ParamField>
+
+## Request
+
+```bash
+curl https://api.freemodel.app/v1/chat/completions \
+  -H "Authorization: Bearer $FREEMODEL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-5.6",
+    "messages": [{"role": "user", "content": "Design a retry policy for an asynchronous media API."}]
+  }'
+```
+
+Read generated text from `choices[0].message.content`. See [Chat Completions protocol](/api-reference/chat-completions) for streaming and response fields.
+
+## Compatible protocol paths
+
+| Format | Path |
+| --- | --- |
+| Chat Completions | `/v1/chat/completions` |
+| Responses | `/v1/responses` |
+| Anthropic Messages | `/v1/messages` |
+| Gemini native | `/v1beta/models/gpt-5.6:generateContent` |
+
+<Note>
+  Use the exact model ID shown here. `gpt-5.6`, `gpt-5.6-luna`,
+  `gpt-5.6-sol`, and `gpt-5.6-terra` are separate billable routes.
+</Note>
