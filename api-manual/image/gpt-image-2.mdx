@@ -1,17 +1,18 @@
 ---
 title: "GPT Image 2"
-description: "Generate one 1K image for $0.01 with gpt-image-2."
+description: "Generate one 1K image from $0.021 with quality and size controls."
 api: "POST /v1/images/generations"
 ---
 
-`gpt-image-2` generates one 1K image per synchronous request. A successful generation costs **$0.01**, equal to **1 FreeModel credit**.
+`gpt-image-2` generates one 1K image per synchronous request. Price depends on `quality` and `size`; **100 FreeModel credits = \$1**.
 
-| Property | Value |
-| --- | --- |
-| Model ID | `gpt-image-2` |
-| Price | $0.01 per image |
-| Output | 1K |
-| Response | `data[0].b64_json` |
+| Quality | 1024x1024 | 1536x1024 or 1024x1536 |
+| --- | --- | --- |
+| `low` | 2.1 credits (\$0.021) | 2.6 credits (\$0.026) |
+| `medium` | 5.2 credits (\$0.052) | 7.3 credits (\$0.073) |
+| `high` | 17.7 credits (\$0.177) | 26 credits (\$0.26) |
+
+The FreeModel Playground fixes quality at `medium` for predictable billing. Direct API requests can select any supported quality.
 
 <ParamField body="model" type="string" required>
   Set to `gpt-image-2`.
@@ -21,12 +22,15 @@ api: "POST /v1/images/generations"
   Describe the desired subject, composition, lighting, and style.
 </ParamField>
 
-<ParamField body="size" type="string">
-  Use `1024x1024`, `1536x1024`, or `1024x1536`. Other values use automatic
-  framing.
+<ParamField body="quality" default="medium" type="string">
+  Use `low`, `medium`, or `high`. Higher quality costs more.
 </ParamField>
 
-<ParamField body="n" type="integer" default="1">
+<ParamField body="size" type="string">
+  Use `1024x1024`, `1536x1024`, or `1024x1536`. Price depends on the selected size.
+</ParamField>
+
+<ParamField body="n" default="1" type="integer">
   Set to `1`; multiple-image requests are not supported.
 </ParamField>
 
@@ -39,6 +43,7 @@ curl https://api.freemodel.app/v1/images/generations \
   -d '{
     "model": "gpt-image-2",
     "prompt": "A translucent mechanical keyboard, precise editorial photography",
+    "quality": "medium",
     "size": "1536x1024",
     "n": 1
   }' \

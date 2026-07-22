@@ -14,14 +14,16 @@ FreeModel exposes an OpenAI-compatible image generations endpoint. Select the ex
   A clear description of the image to generate.
 </ParamField>
 
-<ParamField body="size" type="string">
-  Use `1024x1024`, `1536x1024`, or `1024x1536` for an explicit square,
-  landscape, or portrait frame. Omit it for automatic framing.
+<ParamField body="quality" default="medium" type="string">
+  For `gpt-image-2`, use `low`, `medium`, or `high`. Quality and size determine the final charge.
 </ParamField>
 
-<ParamField body="n" type="integer" default="1">
-  Request one image. The current FreeModel image routes do not support batch
-  generation.
+<ParamField body="size" type="string">
+  Use `1024x1024`, `1536x1024`, or `1024x1536` for an explicit square, landscape, or portrait frame.
+</ParamField>
+
+<ParamField body="n" default="1" type="integer">
+  Request one image. The current FreeModel image routes do not support batch generation.
 </ParamField>
 
 ## Generate an image
@@ -33,6 +35,7 @@ curl https://api.freemodel.app/v1/images/generations \
   -d '{
     "model": "gpt-image-2",
     "prompt": "A precise indigo product icon on a white background",
+    "quality": "medium",
     "size": "1024x1024",
     "n": 1
   }'
@@ -48,7 +51,7 @@ The response contains base64 image bytes at `data[0].b64_json`.
 curl https://api.freemodel.app/v1/images/generations \
   -H "Authorization: Bearer $FREEMODEL_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"model":"gpt-image-2","prompt":"An indigo paper lantern"}' \
+  -d '{"model":"gpt-image-2","prompt":"An indigo paper lantern","quality":"medium","size":"1024x1024"}' \
   | jq -r '.data[0].b64_json' \
   | base64 --decode > image.png
 ```
@@ -63,6 +66,5 @@ On macOS, replace `base64 --decode` with `base64 -D`.
 ```
 
 <Note>
-  `gpt-image-2` costs $0.01 per successful generation and `gpt-image-2-all`
-  costs $0.02. See the individual model page before estimating cost.
+  `gpt-image-2` costs \$0.021 to \$0.26 per successful generation depending on quality and size. See the model page for the full matrix. `gpt-image-2-all` remains \$0.02 per successful generation.
 </Note>
